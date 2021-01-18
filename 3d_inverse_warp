@@ -1,0 +1,1 @@
+3dNwarpApply -prefix mni152_to_Sub1.nii.gz -source 'mni_icbm152_t1*.nii' -master 005_3DT1BRAVO.nii.gz -nwarp 'Sub1_BSQ_1InverseWarp.nii.gz INV(Sub1_BSQ_0GenericAffine.1D)'
