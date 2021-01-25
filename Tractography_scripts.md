@@ -33,6 +33,7 @@
 	* fixed 用来配准的模版
 	* moving 待配准的文件
 	* base_mask_SyN 用来配准的模版的全脑mask
+	
 	ANTs
 4. 将mat格式的矩阵转换为1D格式
 	需要 1_ants2afniMatrix.py 脚本
@@ -48,3 +49,31 @@
 	# -g 去颅骨时上下的比例，-1～1，默认0，越大上方保留的越少，下方保留的越多
 	```
 	makeMask
+6. 从dti提取b=0的图像（用于配准）
+   dwiextract  007_DTI_corrected.nii -bzero - | mrmath -axis 3 - mean "$dti"_b0.nii 
+
+7. 用flirt进行刚体配准（6自由度）
+	```
+	refer_image=007_DTI_b0.nii
+	input_image=005_3DT1BRAVO
+	out_image="$input_image"_to_dti
+
+	# register to a reference and make a mat file
+	flirt -ref $refer_image -in "$input_image".nii.gz -out "$out_image"_2mm.nii.gz -dof 6 -omat t1ToDTI_flirt.mat
+
+	# use the mat file to re-register with the same voxel size in the reference (This reference is not for registration)
+	flirt -ref "$input_image".nii.gz -in "$input_image".nii.gz -out "$out_image"_1mm.nii.gz -applyxfm -init t1ToDTI_flirt.mat
+	```
+	flirt_registration
+
+8. 按照xml格式导出nifti文件的header
+	```
+	fslhd -x 007_DTI_b0.nii > 007_DTI_nifti_header.xml
+	```
+	修改007_DTI_nifti_header.xml，如果要改成voxel size=1,则把ndim改为3，nx,ny,nz分别扩大为原来2倍，nt=1,dx,dy,dz,dt=1，然后sto_xyz_matrix中的2改为1；
+
+9. 根据xml格式的nifti header创建一个空的nii文件（用来配准时指定输出文件的分辨率，像素大小等）
+	```
+	fslcreatehd 007_DTI_nifti_header.xml 007_DTI_blank.nii.gz
+	```
+	然后将第7点中的第二个flirt的-ref参数改为007_DTI_blank.nii.gz，再运行第7点程序，可以得到2个配准后的文件，其中_2mm是3DT1在DTI原始空间的结果，_1mm是3DT1配准后在原空间的结果
