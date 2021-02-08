@@ -1,0 +1,27 @@
+#!/bin/tcsh -xef
+
+
+set mask_dset = /home/rogerlin/fMRI/analysis/mask_group+tlrc
+
+set dirA = /home/rogerlin/fMRI/analysis
+
+set results_dir = normal.results_of_6_subjects_clustsim
+if ( ! -d $results_dir ) mkdir $results_dir
+
+3dttest++ -prefix $results_dir/ttest -AminusB -paired \
+	  -mask $mask_dset				\
+	  -setA Convergence				\
+	  	LS "$dirA/stats.LuoSha+tlrc[1]"		\
+	  	XYS "$dirA/stats.XueYinshuang+tlrc[1]"		\
+		WQ "$dirA/stats.WangQian+tlrc[1]"			\
+		ZA "$dirA/stats.ZhangAo+tlrc[1]"			\
+		YXJ "$dirA/stats.YangXiaojuan+tlrc[1]"		\
+		LXY "$dirA/stats.LuXiuyue+tlrc[1]"			\
+	  -setB Relax					\
+		LS "$dirA/stats.LuoSha+tlrc[4]"		\
+	  	XYS "$dirA/stats.XueYinshuang+tlrc[4]"		\
+		WQ "$dirA/stats.WangQian+tlrc[4]"			\
+		ZA "$dirA/stats.ZhangAo+tlrc[4]"			\
+		YXJ "$dirA/stats.YangXiaojuan+tlrc[4]"		\
+		LXY "$dirA/stats.LuXiuyue+tlrc[4]"			
+
