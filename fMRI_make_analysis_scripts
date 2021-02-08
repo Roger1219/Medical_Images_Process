@@ -17,7 +17,7 @@ afni_proc.py -subj_id ${subj}						\
 	-tshift_opts_ts -tpattern altplus				\
 	-tshift_interp -quintic						\
 	-align_opts_aea -check_flip					\
-	-tlrc_base MNI_avg152T1+tlrc					\
+	-tlrc_base MNI152_T1_2009c+tlrc					\
 	-volreg_align_to MIN_OUTLIER					\
 	-volreg_align_e2a						\
 	-volreg_tlrc_warp						\
