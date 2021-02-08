@@ -25,7 +25,7 @@
             * 功能像： epi_r1.nii, epi_r2.nii.......
         3. 在同目录下stimuli 里准备记录了刺激开始时间的txt文件，如：relax.txt，有几个epi文件，就有几行
         4. 在run the regression analysis部分，有几个epi，就有几个stim_times，BLOK（6，1）,6代表刺激的持续时间，跟txt文件中的时间有关；
-        文件：fMRI_process
+    文件：fMRI_process
     
 3. 进行多重比较检验（计算voxie数量及其检验效能）
     1. 3dFWHMx
@@ -42,7 +42,7 @@
         ```
         其中，AAA是全脑mask，同上一步，a,b,c是上一步结果的前3个数。
     3. 3dttest++ 
-        在3dttest++中加入 -Clustsim 参数即可直接生成 
+    在3dttest++中加入 -Clustsim 参数即可直接生成 
 4. 进行组分析（比较多个被试的任务结果）
     ```
     3dttest++ -prefix AAA -AminusB -paired \
