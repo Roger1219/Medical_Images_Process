@@ -38,7 +38,7 @@
         结果得到4个数字(a,b,c,r），用与下一步计算
     2. 3dClustSim 
         ```
-        mask AAA -acf a b c
+        3dClustSim -mask AAA -acf a b c
         ```
         其中，AAA是全脑mask，同上一步，a,b,c是上一步结果的前3个数。
     3. 3dttest++ 
@@ -52,4 +52,9 @@
 	  -setB Relax					\
 		LS "$dirA/stats.LuoSha+tlrc[4]"	
     ```
-    具体见fMRI_analysis
+    备注：
+    `-resid q`
+    Output the residuals into a dataset with prefix 'q'.
+    `-ACF`
+    If residuals are saved, also compute the ACF parameters from them using program 3dFHWMx --for further use in 3dClustSim (which must be run separately).
+    * 文件：fMRI_analysis
