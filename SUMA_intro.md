@@ -1,4 +1,4 @@
-SUMA使用教程
+### SUMA使用教程
 1. 配准到标准空间后使用SUMA
 2. 下载SUMA文件 https://afni.nimh.nih.gov/pub/dist/tgz/
 3. 拷贝SUMA辅助文件到目录，解压缩
