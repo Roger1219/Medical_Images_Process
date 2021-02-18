@@ -3,7 +3,7 @@
 2. 下载SUMA文件 https://afni.nimh.nih.gov/pub/dist/tgz/
 3. 拷贝SUMA辅助文件到目录，解压缩
 4. 将解压缩里面的-urfvol.nii文件做underlay，待输出的结果做overlay在afni打开
-5. 打开SUMA：suma -spec suma_MNI152_2009/std.141.MNI152_2009_both.spec -sv MNI152_2009_urfVol.nii &
+5. 打开SUMA：suma -spec suma_MNI152_2009/std.141.MNI152_2009_both.spec -sv MNI152_2009_SurfVol.nii &
 6. 按 “t” 与afni连接，将结果映射到suma，此时在afni调整就会在suma大脑皮层表面空间对应调整
 7. SUMA快捷键：
     1. "a"：取消映射透明；

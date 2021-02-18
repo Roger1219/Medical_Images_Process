@@ -27,23 +27,7 @@
         4. 在run the regression analysis部分，有几个epi，就有几个stim_times，BLOK（6，1）,6代表刺激的持续时间，跟txt文件中的时间有关；
         * 文件：fMRI_process
     
-3. 进行多重比较检验（计算voxie数量及其检验效能）
-    1. 3dFWHMx
-        ```
-        3dFWHMx -detrend -mask AAA                        \
-            -acf BBB.1D               \
-            CCC
-        ```
-        其中，AAA是是全脑msk，一般是full_mask.$subj+tlrc；BBB是输出的结果文件，CCC是输入的文件（残差）
-        结果得到4个数字(a,b,c,r），用与下一步计算
-    2. 3dClustSim 
-        ```
-        3dClustSim -mask AAA -acf a b c
-        ```
-        其中，AAA是全脑mask，同上一步，a,b,c是上一步结果的前3个数。
-    3. 3dttest++ 
-        * 在3dttest++中加入 -Clustsim 参数即可直接生成 
-4. 进行组分析（比较多个被试的任务结果）
+3. 进行组分析（比较多个被试的任务结果）
     ```
     3dttest++ -prefix AAA -AminusB -paired \
 	  -mask BBB				\
@@ -53,8 +37,25 @@
 		LS "$dirA/stats.LuoSha+tlrc[4]"	
     ```
     备注：
-    `-resid q`
-    Output the residuals into a dataset with prefix 'q'.
-    `-ACF`
-    If residuals are saved, also compute the ACF parameters from them using program 3dFHWMx --for further use in 3dClustSim (which must be run separately).
-    * 文件：fMRI_analysis
+        1. `-resid q+tlrc`
+        Output the residuals into a dataset with prefix 'q'.
+        2. `-ACF`
+        If residuals are saved, also compute the ACF parameters from them using program 3dFHWMx --for further use in 3dClustSim (which must be run separately).
+    * 文件：fMRI_analysis    
+
+4. 进行多重比较检验（计算voxie数量及其检验效能）
+    1. 3dFWHMx
+        ```
+        3dFWHMx -detrend -mask AAA    \
+            -acf BBB.1D               \
+            CCC
+        ```
+        其中，AAA是是全脑msk，一般是full_mask.$subj+tlrc；BBB是输出的结果文件，CCC是输入的文件（残差，从上一步 -resid q得到）。
+        结果得到4个数字(a,b,c,r），用与下一步计算
+    2. 3dClustSim 
+        ```
+        3dClustSim -mask AAA -acf a b c > clustsim.txt
+        ```
+        其中，AAA是全脑mask，同上一步，a,b,c是上一步结果的前3个数，将结果输出到clustsim.txt中
+    3. 3dttest++ 
+        * 在3dttest++中加入 -Clustsim 参数即可直接生成 
