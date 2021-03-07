@@ -50,8 +50,9 @@
 	```
 	makeMask
 6. 从dti提取b=0的图像（用于配准）
-   dwiextract  007_DTI_corrected.nii -bzero - | mrmath -axis 3 - mean "$dti"_b0.nii 
-
+	```
+    dwiextract -bzero -fslgrad 007_DTI.bvec 007_DTI.bval 007_DTI_corrected.nii.gz - | mrmath -axis 3 - mean 007_DTI_corrected_b0.nii 
+	```
 7. 用flirt进行刚体配准（6自由度）
 	```
 	refer_image=007_DTI_b0.nii
