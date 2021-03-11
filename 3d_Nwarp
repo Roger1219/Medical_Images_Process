@@ -1,3 +1,11 @@
 name=`ls 007*.nii.gz`
 echo $name
-parallel 3dNwarpApply -prefix {.}_MNI_icbm_152.nii.gz -source {} -master Sub1_BSQ_fwd_warped.nii.gz -nwarp 'Sub1_BSQ_1Warp.nii.gz Sub1_BSQ_0GenericAffine.1D' ::: $name
+parallel  --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'       \
+                3dNwarpApply -prefix {..}_MNI_icbm_152.nii.gz        \
+                -source {}      \
+                -master Sub1_BSQ_fwd_warped.nii.gz      \
+                -nwarp 'Sub1_BSQ_1Warp.nii.gz Sub1_BSQ_0GenericAffine.1D'       \
+                ::: $name
+
+
+# --rpl 的含义为：定义{..}为去掉两个后缀

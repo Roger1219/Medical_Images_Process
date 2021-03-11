@@ -33,7 +33,12 @@
 	* fixed 用来配准的模版
 	* moving 待配准的文件
 	* base_mask_SyN 用来配准的模版的全脑mask
-	
+	* ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS  设置使用几个cpu核心计算
+	* ```
+	export ANTSPATH=/opt/ANTs/bin/
+    export PATH=${ANTSPATH}:$PATH
+	```
+	有的需要先设置路径
 	ANTs
 4. 将mat格式的矩阵转换为1D格式
 	需要 1_ants2afniMatrix.py 脚本
