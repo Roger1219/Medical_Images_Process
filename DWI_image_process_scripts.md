@@ -16,7 +16,7 @@
 5. 根据mask导出ROI（为了进一步matlab统计）
 ```
 # 集合时
-3dcalc -a ax\_dwi1+orig.BRIK -b BiMR+orig.BRIK.gz -expr a\*b -prefix ax\_dwi1BiMRatConvergence.nii
+3dcalc -a ax_dwi1+orig.BRIK -b BiMR+orig.BRIK.gz -expr a*b -prefix ax_dwi1BiMRatConvergence.nii
 # 休息时
-3dcalc -a ax\_dwi1+orig.BRIK -b BiMR+orig.BRIK.gz -expr a\*b -prefix ax\_dwi1BiMRatRelax.nii
+3dcalc -a ax_dwi1+orig.BRIK -b BiMR+orig.BRIK.gz -expr a*b -prefix ax_dwi1BiMRatRelax.nii
 ```

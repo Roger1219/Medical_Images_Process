@@ -77,4 +77,4 @@
 	```
 	fslcreatehd 007_DTI_nifti_header.xml 007_DTI_blank.nii.gz
 	```
-	然后将第7点中的第二个flirt的-ref参数改为007_DTI_blank.nii.gz，再运行第7点程序，可以得到2个配准后的文件，其中_2mm是3DT1在DTI原始空间的结果，_1mm是3DT1配准后在原空间的结果
+	然后将第7点中的第二个flirt的-ref参数改为007_DTI_blank.nii.gz，再运行第7点程序，可以得到2个配准后的文件，其中_2mm是3DT1在DTI原始空间的结果，_1mm是3DT1配准后在原T1空间的结果
