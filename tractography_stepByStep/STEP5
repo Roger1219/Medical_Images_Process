@@ -1,0 +1,8 @@
+name=`ls *_mni_icbm152_.nii.gz`
+echo $name 
+parallel --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'        \
+                3dNwarpApply -prefix {..}to_native.nii.gz  \
+                -source {}                  \
+                -master MNI_to_DTI_b0_fwd_warped.nii.gz   \
+                -nwarp 'MNI_to_DTI_b0_1Warp.nii.gz MNI_to_DTI_b0_0GenericAffine.1D'         \
+                ::: $name
