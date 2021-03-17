@@ -1,0 +1,6 @@
+prefixName=007_DTIrhimsize128
+
+dwiextract -bzero -fslgrad ${prefixName}.bvec ${prefixName}.bval ${prefixName}_corrected.nii.gz -     \
+                        | mrmath -axis 3 - mean ${prefixName}_corrected_b0.nii 
+
+fslhd -x ${prefixName}_corrected_b0.nii > ${prefixName}_corrected_b0_header.xml
