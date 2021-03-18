@@ -11,8 +11,8 @@
      ```
      scp *** root@*******
      ```
-     - transform mat file to 1D file 
 5. STEP5
+     - transform mat file to 1D file 
      - apply 1D file to the roi files
 
 - All scripts are saved in "tractrography_stepByStep" folder

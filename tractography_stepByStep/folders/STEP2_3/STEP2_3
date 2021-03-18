@@ -1,0 +1,21 @@
+refer_image=007_DTIrhimsize128_corrected
+input_image=006_3DT1BRAVO
+out_image="$input_image"_to_dti
+
+# creat  dti_blank file from xml file
+fslcreatehd "$refer_image"_b0_header.xml "$refer_image"_blank.nii.gz
+
+# register to a reference and make a mat file
+flirt -ref "$refer_image"_b0.nii     \
+         -in "$input_image".nii.gz  \
+         -out "$out_image"_2mm.nii.gz   \
+         -dof 6 -omat t1ToDTI_flirt.mat
+
+# use the mat file to re-register with the same voxel size in the reference (This reference is not for registration)
+flirt -ref "$refer_image"_blank.nii.gz   \
+        -in "$input_image".nii.gz   \
+        -out "$out_image"_1mm.nii.gz    \
+        -applyxfm -init t1ToDTI_flirt.mat
+
+# make bet mask for the result
+ bet "$out_image"_1mm.nii.gz "$out_image"_1mm_bet.nii.gz -f 0.3 -m

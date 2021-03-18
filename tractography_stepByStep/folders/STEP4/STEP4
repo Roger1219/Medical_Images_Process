@@ -1,10 +1,12 @@
-prefix=IndiSpace_to_2009c
-fixed=mni_icbm152_t1_tal_nlin_sym_09c.nii
-moving=T1w_acpc_dc_restore_1.05.nii.gz
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=16
+
+prefix=MNI_to_DTI_b0
+fixed=006_3DT1BRAVO_to_dti_1mm.nii.gz
+moving=mni_icbm152_t1_tal_nlin_sym_09c.nii
 base_mask=none
 in_mask=none
-base_mask_SyN=mni_icbm152_t1_tal_nlin_sym_09c_mask.nii
-in_mask_SyN=none
+base_mask_SyN=006_3DT1BRAVO_to_dti_1mm_bet_mask.nii.gz
+in_mask_SyN=mni_icbm152_t1_tal_nlin_sym_09c_mask.nii
 antsRegistration -d 3 --float 1 --verbose \
       --output [ ${prefix}_, ${prefix}_fwd_warped.nii.gz, ${prefix}_inv_warped.nii.gz ] \
       --interpolation LanczosWindowedSinc \
@@ -38,6 +40,3 @@ antsRegistration -d 3 --float 1 --verbose \
           -s 1x0.5x0vox  \
           -f 4x2x1 -l 1 \
           -x [ ${base_mask_SyN}, ${in_mask_SyN} ]
-          
-./1_ants2afniMatrix.py -i MNI_to_DTI_b0_0GenericAffine.mat     \
-                                               -o MNI_to_DTI_b0_0GenericAffine.1D
