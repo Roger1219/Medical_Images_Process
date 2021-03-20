@@ -1,4 +1,5 @@
-name=`ls ~/DTI/ROI/*_mni_icbm152_.nii.gz`
+cp ~/DTI/ROI/*_mni_icbm152_.nii.gz ./
+name=`ls *_mni_icbm152_.nii.gz`
 echo $name 
 
 #transform mat to .1D
@@ -16,3 +17,5 @@ parallel --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'        \
 # move results to a single folder
 mkdir ../final_results_nativeROI
 mv *to_native.nii.gz ../final_results_nativeROI/
+
+rm ./*_mni_icbm152_.nii.gz
