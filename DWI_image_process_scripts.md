@@ -20,3 +20,6 @@
 # 休息时
 3dcalc -a ax_dwi1+orig.BRIK -b BiMR+orig.BRIK.gz -expr a*b -prefix ax_dwi1BiMRatRelax.nii
 ```
+6. Matlab 分析程序
+
+     分别指定放松和集合状态的文件数量，然后从matlab运行rgCalculatorForAll.m文件
