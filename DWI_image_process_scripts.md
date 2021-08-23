@@ -3,6 +3,8 @@
     ```
     dcm2niix\_afni -f %p\_%s -o ./ ./
     ```
+    process1.sh
+    * 将脚本拷贝到SE序列文件夹的目录中，运行脚本，会自动在每一个SE文件夹中生成nii图像文件
 2. 提取b=700数据
     ```
     3dbucket -prefix ax\_dwi1 Axial\_DWI\_Focus\_small\_FOV\_4.nii\[0]`
