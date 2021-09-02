@@ -8,7 +8,7 @@ format;
 % This script for BiON
 
 % Folders
-sDirResult = './PA20.1/'; 
+sDirResult = './PA21.1/'; 
 
 % 'Results';
   % For BiMR 
@@ -28,7 +28,7 @@ sDirResult = './PA20.1/';
  % each xlFile means a single result struct
  xlFile = struct('fullfile',[],'nifti',[],'mean',[]);
  % each line of xlFiles includes the results of MR, LR and ON. 
- xlFiles = repmat(xlFile,[numOfRelax + numOfConvergence]);
+ xlFiles = repmat(xlFile,(numOfRelax + numOfConvergence));
  % each line of xlFiles includes the results of MR-ON, LR-ON and ON. 
  xlAnalysis = zeros(numOfRelax + numOfConvergence, 3);
  % 
