@@ -8,7 +8,7 @@ format;
 % This script for BiON
 
 % Folders
-sDirResult = './'; 
+sDirResult = './PA20.1/'; 
 
 % 'Results';
   % For BiMR 
@@ -28,7 +28,7 @@ sDirResult = './';
  % each xlFile means a single result struct
  xlFile = struct('fullfile',[],'nifti',[],'mean',[]);
  % each line of xlFiles includes the results of MR, LR and ON. 
- xlFiles = repmat(xlFile,[numOfRelax + numOfConvergence 3]);
+ xlFiles = repmat(xlFile,[numOfRelax + numOfConvergence]);
  % each line of xlFiles includes the results of MR-ON, LR-ON and ON. 
  xlAnalysis = zeros(numOfRelax + numOfConvergence, 3);
  % 
@@ -121,6 +121,12 @@ for ii = 1 : numOfRelax
     fprintf("\n");
 end
 
+% print mean values of relax
+fprintf("Mean ")
+fprintf("%8.4f ",mean(xlAnalysis(1:numOfRelax,:)));
+fprintf("\n")
+
+
 disp('When convergence')
 fprintf("No    MR-ON     LR-ON     ON \n"); 
 for ii = numOfRelax + 1:numOfRelax + numOfConvergence
@@ -130,3 +136,7 @@ for ii = numOfRelax + 1:numOfRelax + numOfConvergence
     end
     fprintf("\n");
 end
+% print mean values of convergence
+fprintf("Mean ")
+fprintf("%8.4f ",mean(xlAnalysis(numOfRelax + 1:numOfRelax + numOfConvergence,:)));
+fprintf("\n")
