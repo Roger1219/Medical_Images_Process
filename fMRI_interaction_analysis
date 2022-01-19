@@ -17,3 +17,9 @@
       s11   strabismus  Convergence stats.GTT+tlrc'[1]'               \
       s10   strabismus  Relax       stats.WM+tlrc'[4]'                \
       s11   strabismus  Relax       stats.GTT+tlrc'[4]'          
+
+
+      Error in if (len%%wd != 0) errex.AFNI(paste("The content under -dataTable is not rectangular !",  : 
+  参数长度为零
+Calls: process.MVM.opts
+停止执行
