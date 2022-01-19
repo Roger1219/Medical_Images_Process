@@ -1,0 +1,19 @@
+#!/bin/bash
+3dMVM -prefix Strabismus_Normal \
+      -jobs 16      \
+      -bsVars 'Category'        \
+      -wsVars 'Eye'         \
+      -mask mask_group+tlrc     \
+      -SS_type 3        \
+      -num_glf 1        \
+      -glfLabel 1 Stra_vs_normal_in_Conver_vs_relax -glfCode 1 'Category : 1*strabismus -1*normal Eye : 1*Convergence -1*Relax'     \
+      -dateTable        \
+      Subj  Category    Eye         InputFile                         \
+      s1    normal      Convergence stats.LuoSha+tlrc'[1]'            \
+      s2    normal      Convergence stats.XueYinshuang+tlrc'[1]'      \
+      s1    normal      Relax       stats.LuoSha+tlrc'[4]'            \
+      s2    normal      Relax       stats.XueYinshuang+tlrc'[4]'      \
+      s10   strabismus  Convergence stats.WM+tlrc'[1]'                \
+      s11   strabismus  Convergence stats.GTT+tlrc'[1]'               \
+      s10   strabismus  Relax       stats.WM+tlrc'[4]'                \
+      s11   strabismus  Relax       stats.GTT+tlrc'[4]'          

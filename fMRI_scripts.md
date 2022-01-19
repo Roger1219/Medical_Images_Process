@@ -16,7 +16,7 @@
     dicomToNii
 
 2. 进行fMRI任务分析
-    1. 使用脚本生成分析脚本
+    1. 使用脚本生成分析脚本（推荐使用这种方法）
         fMRI_make_analysis_scripts
     2. 直接修改分析脚本
         1. 设定subj为被试姓名
