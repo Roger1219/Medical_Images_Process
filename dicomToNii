@@ -12,7 +12,7 @@ do
 	prefixName="epi_r$i"
 
 	uniq_images IM*[0123456789] > uniq_image_list.txt
-	Dimon -infile_list uniq_image_list.txt \
+	sudo Dimon -infile_list uniq_image_list.txt \
 		-gert_create_dataset	\
 		-gert_write_as_nifti	\
 		-gert_to3d_prefix $prefixName	\
@@ -29,7 +29,7 @@ done
 echo "In folder: T1"
 cd T1
 uniq_images IM*[0123456789] > uniq_image_list.txt
-Dimon -infile_list uniq_image_list.txt \
+sudo Dimon -infile_list uniq_image_list.txt \
 	-gert_create_dataset	\
 	-gert_write_as_nifti	\
 	-gert_to3d_prefix T1_3D	\
