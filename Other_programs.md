@@ -11,3 +11,5 @@
     将 XXX.img 和 XXX.hdr 转换成nii.gz文件
 3. dicomReader.py  
     读取dicom格式文件，输出其全部的tag。使用时修改fileName=文件名即可
+4. extracTonii.sh  
+    提取afni的Brik文件中的num子集并导出，然后转换成nii格式。

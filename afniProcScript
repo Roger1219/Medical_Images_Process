@@ -1,0 +1,42 @@
+#!/bin/tcsh -xef
+set patientName = LS
+
+
+
+
+
+afni_proc.py -subj_id $patientName           \
+    -blocks tshift align tlrc volreg blur mask scale regress \
+    -radial_correlate_blocks tcat volreg     \
+    -copy_anat T1_3D.nii \
+    -dsets epi_r1.nii epi_r2.nii \
+    -tcat_remove_first_trs 5 \
+    -align_opts_aea \
+    -check_flip \
+    -tlrc_base MNI152_T1_2009c+tlrc \
+    -volreg_align_to MIN_OUTLIER \
+    -volreg_align_e2a   \
+    -volreg_tlrc_warp \
+    -blur_size 4.0 \
+    
+    -regress_stim_times \
+     /media/win/MRI_Project/fMRI2021/stimuli/Convergence.txt   \
+     /media/win/MRI_Project/fMRI2021/stimuli/Relax.txt     \
+    -regress_stim_labels convergence relax \
+    -regress_basis 'BLOCK(6,1)'                    \
+    -regress_censor_motion 0.3 \
+    -regress_motion_per_run \
+    -regress_opts_3dD  \
+
+    -gltsym 'SYM: convergence - relax' \
+    -glt_label 1 C-R                   \
+    -regress_compute_fitts \
+    -regress_make_ideal_sum sum_ideal.1D           \
+    -regress_est_blur_epits \
+    -regress_est_blur_errts \
+
+    -script proc.$patientName \
+    -scr_overwrite \
+    -tshift_opts_ts -tpattern altplus \
+    -tshift_interp -quintic 
+
