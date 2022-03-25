@@ -1,27 +1,47 @@
 #!/bin/tcsh -xef
 
 
-set mask_dset = /home/rogerlin/fMRI/analysis/mask_group+tlrc
+set mask_dset = /media/win/MRI_Project/fMRI2021/strabismus_all_6s/mask_group+tlrc
 
-set dirA = /home/rogerlin/fMRI/analysis
+set dirA = /media/win/MRI_Project/fMRI2021/strabismus_all_6s
 
-set results_dir = normal.results_of_6_subjects_clustsim
+set results_dir = patient.result2
 if ( ! -d $results_dir ) mkdir $results_dir
 
 3dttest++ -prefix $results_dir/ttest -AminusB -paired \
+	  -resid q+tlrc 		\
+	  -ACF 		\
 	  -mask $mask_dset				\
 	  -setA Convergence				\
-	  	LS "$dirA/stats.LuoSha+tlrc[1]"		\
-	  	XYS "$dirA/stats.XueYinshuang+tlrc[1]"		\
-		WQ "$dirA/stats.WangQian+tlrc[1]"			\
-		ZA "$dirA/stats.ZhangAo+tlrc[1]"			\
-		YXJ "$dirA/stats.YangXiaojuan+tlrc[1]"		\
-		LXY "$dirA/stats.LuXiuyue+tlrc[1]"			\
+	  	NCC "$dirA/stats.NCC+tlrc[1]"		\
+	  	SH "$dirA/stats.SH+tlrc[1]"		\
+		WM "$dirA/stats.WM+tlrc[1]"			\
+		GTT "$dirA/stats.GTT+tlrc[1]"			\
+		QL "$dirA/stats.QL+tlrc[1]"			\
+		ZJ "$dirA/stats.ZJ+tlrc[1]"			\
+		FRR "$dirA/stats.FRR+tlrc[1]"			\
+		WJH "$dirA/stats.WJH+tlrc[1]"			\
+		ZH "$dirA/stats.ZH+tlrc[1]"	\
 	  -setB Relax					\
-		LS "$dirA/stats.LuoSha+tlrc[4]"		\
-	  	XYS "$dirA/stats.XueYinshuang+tlrc[4]"		\
-		WQ "$dirA/stats.WangQian+tlrc[4]"			\
-		ZA "$dirA/stats.ZhangAo+tlrc[4]"			\
-		YXJ "$dirA/stats.YangXiaojuan+tlrc[4]"		\
-		LXY "$dirA/stats.LuXiuyue+tlrc[4]"			
+		NCC "$dirA/stats.NCC+tlrc[4]"		\
+	  	SH "$dirA/stats.SH+tlrc[4]"		\
+		WM "$dirA/stats.WM+tlrc[4]"			\
+		GTT "$dirA/stats.GTT+tlrc[4]"		\
+		QL "$dirA/stats.QL+tlrc[4]"			\
+		ZJ "$dirA/stats.ZJ+tlrc[4]"			\
+		FRR "$dirA/stats.FRR+tlrc[4]"			\
+		WJH "$dirA/stats.WJH+tlrc[4]"			\
+		ZH "$dirA/stats.ZH+tlrc[4]"				
 
+## 计算FWE的体素阈值，结果输出到clustsim.txt
+mv q* $results_dir
+# get three parameters in ACF file
+set para1 = `cat $results_dir/q.ACFparam.txt | awk '{split($0,a); print a[1]}'`
+set para2 = `cat $results_dir/q.ACFparam.txt | awk '{split($0,a); print a[2]}'`
+set para3 = `cat $results_dir/q.ACFparam.txt | awk '{split($0,a); print a[3]}'`
+echo "ACF values are: $para1, $para2, $para3"
+
+# calculate FWE
+3dClustSim -mask $mask_dset -acf $para1 $para2 $para3 > "$results_dir/clustsim.txt"
+
+echo "Finished"
