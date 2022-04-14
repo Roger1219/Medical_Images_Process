@@ -86,3 +86,11 @@
 	然后将第7点中的第二个flirt的-ref参数改为007_DTI_blank.nii.gz，再运行第7点程序，可以得到2个配准后的文件，其中_2mm是3DT1在DTI原始空间的结果，_1mm是3DT1配准后在原T1空间的结果
 
 10. 从dsi_studio追踪的tract的报告里提取qa，fa，rd等参数进行统计：extractExcel.py
+11. 将原始dicom文件转换成nii格式，并创建bval和bvec文件   
+    ```
+	dcm2niix_afni ..
+	```
+12. 使用epi_reg 将DTI（b=0）和T1进行配准（见epi_reg）   
+	1. 先运行 epi_reg 将b0向T1配准，并得到mat文件
+	2. 对mat进行逆变换
+	3. 将逆变换得到的mat应用于T1，得到T1_to_DTI_b0

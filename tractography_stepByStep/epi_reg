@@ -1,0 +1,12 @@
+
+#map epi to T1
+epi_reg --epi=007_DTI_corrected_b0_bet.nii.gz --t1=005_3DT1BRAVO.nii.gz --t1brain=005_3DT1BRAVO_bet.nii.gz --out=epi_reg
+
+#inverse the mat file to make T1_2_DTI mat file
+convert_xfm -omat t1_to_DTI.mat -inverse epi_reg.mat
+
+#apply mat file to transform
+flirt -ref 005_3DT1BRAVO_bet.nii.gz -in 007_DTI_corrected_b0_bet.nii.gz -applyxfm -init epi_reg.mat -out dwi_coreg
+
+
+
