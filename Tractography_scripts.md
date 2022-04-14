@@ -94,3 +94,6 @@
 	1. 先运行 epi_reg 将b0向T1配准，并得到mat文件
 	2. 对mat进行逆变换
 	3. 将逆变换得到的mat应用于T1，得到T1_to_DTI_b0
+	4. 可能部分配准效果并不好
+13. 采用另一准方法从dicom预处理、畸变矫正到T1配准   
+     参考dtiRaw_preprocess
