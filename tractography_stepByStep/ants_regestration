@@ -1,0 +1,62 @@
+#! /bin/bash
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=16
+patientName=lilin
+
+# registrate HCP template to native T1 bet image (which has been regestrated to native dti b0 image!)
+mkdir ants_regestration
+
+prefix=HCP_to_T1_to_DTI_b0
+fixed=${patientName}_t1_bet_to_dti_1mm.nii.gz
+moving=HCP1065_mni_icbm152_t1_tal_nlin_asym_09c_brain.nii.gz 
+base_mask=none
+in_mask=none
+base_mask_SyN=none
+in_mask_SyN=none 
+antsRegistration -d 3 --float 1 --verbose \
+      --output [ ants_regestration/${prefix}_, ants_regestration/${prefix}_fwd_warped.nii.gz, ants_regestration/${prefix}_inv_warped.nii.gz ] \
+      --interpolation LanczosWindowedSinc \
+      --collapse-output-transforms 1 \
+      --initial-moving-transform [ ${fixed}, ${moving}, 1 ]  \
+      --winsorize-image-intensities [0.005,0.995] \
+      --use-histogram-matching 1 \
+      --transform translation[ 0.1 ] \
+          --metric mattes[ ${fixed}, ${moving}, 1, 32, regular, 0.3 ] \
+          --convergence [ 1000x300x100, 1e-6, 10 ]  \
+          --smoothing-sigmas 4x2x1vox  \
+          --shrink-factors 8x4x2 \
+          --use-estimate-learning-rate-once 1 \
+          --masks [ ${base_mask}, ${in_mask} ] \
+      -t rigid[ 0.1 ] \
+          -m mattes[ ${fixed}, ${moving}, 1, 32, regular, 0.3 ] \
+          -c [ 1000x300x100, 1e-6, 10 ]  \
+          -s 4x2x1vox  \
+          -f 4x2x1 -l 1 \
+          -x [ ${base_mask}, ${in_mask} ] \
+      -t affine[ 0.1 ] \
+          -m mattes[ ${fixed}, ${moving}, 1, 32, regular, 0.3 ] \
+          -c [ 1000x300x100, 1e-6, 10 ]  \
+          -s 2x1x0vox  \
+          -f 4x2x1 -l 1 \
+          -x [ ${base_mask}, ${in_mask} ] \
+      -t SyN[ 0.1, 3, 0 ] \
+          -m mattes[ ${fixed}, ${moving}, 0.5 , 32 ] \
+          -m cc[ ${fixed}, ${moving}, 0.5 , 4 ] \
+          -c [ 500x500x100, 1e-8, 10 ]  \
+          -s 1x0.5x0vox  \
+          -f 4x2x1 -l 1 \
+          -x [ ${base_mask_SyN}, ${in_mask_SyN} ]
+
+# apply matrix to tempalte ROI to make native ROI
+#transform mat to .1D
+./1_ants2afniMatrix.py -i ants_regestration/${prefix}_0GenericAffine.mat     \
+                       -o ants_regestration/${prefix}_0GenericAffine.1D
+
+# apply 1D to ROIs
+roiList=$(ls ROIs/ROI_*.nii.gz)
+echo ${roiList}
+parallel --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'        \
+                3dNwarpApply -prefix {..}_to_${patientName}.nii.gz  \
+                -source {}                  \
+                -master ants_regestration/${prefix}_fwd_warped.nii.gz   \
+                -nwarp "ants_regestration/${prefix}_1Warp.nii.gz ants_regestration/${prefix}_0GenericAffine.1D"         \
+                ::: ${roiList}

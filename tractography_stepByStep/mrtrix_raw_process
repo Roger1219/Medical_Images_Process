@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#put T1, dti raw images files in folder "raw_iamges"
+t1_raw=006_3DT1BRAVO.nii.gz
+dti_raw=007_DTI_corrected
+
+patientName=lilin
+
+#convert nifti to mif
+mrconvert -fslgrad raw_images/${dti_raw}.bvec raw_images/${dti_raw}.bval raw_images/${dti_raw}.nii.gz ${patientName}_dti_raw1.mif 
+
+# creat a mask
+dwi2mask ${patientName}_dti_raw1.mif - | maskfilter - dilate ${patientName}_dti_raw1_mask.mif -npass 3
+
+#Denoising
+dwidenoise ${patientName}_dti_raw1.mif ${patientName}_dti_denoise.mif -noise noiselevel.mif -mask ${patientName}_dti_raw1_mask.mif
+
+#Gibbs Ring artifact
+mrdegibbs ${patientName}_dti_denoise.mif ${patientName}_dti_degibbs.mif 
+
+#motion and distortion correction
+dwifslpreproc ${patientName}_dti_degibbs.mif ${patientName}_dti_preproc.mif \
+              -rpe_none -pe_dir AP \
+              -eddy_options "--data_is_shelled --slm=linear --niter=5"
+              
+# bias filed correction
+dwibiascorrect ants ${patientName}_dti_preproc.mif ${patientName}_dti_biascorr.mif
+
+#prepare for alignment to T1
+dwiextract ${patientName}_dti_biascorr.mif -bzero - | mrmath -axis 3 - mean ${patientName}_dti_b0.nii.gz
+
+#prepare T1
+bet raw_images/${t1_raw}  ${patientName}_t1_bet.nii.gz -R
+
+# use ants to registrate
+antsRegistrationSyN.sh -d 3 -f ${patientName}_dti_b0.nii.gz -m ${patientName}_t1_bet.nii.gz -t r -o ${patientName}_t1_bet_to_dti
+
+
+# if you need the mat file for mrtransform, execute next code. Meanwhile, this code can make the transformed image resolution isn't changed.
+
+ConvertTransformFile 3 ${patientName}_t1_bet_to_dti0GenericAffine.mat ${patientName}_t1_bet_to_dti0GenericAffine.txt
+transformconvert ${patientName}_t1_bet_to_dti0GenericAffine.txt itk_import ${patientName}_t1_bet_to_dti_mrtrix.txt
+mrtransform -linear ${patientName}_t1_bet_to_dti_mrtrix.txt ${patientName}_t1_bet.nii.gz ${patientName}_t1_bet_to_dti_1mm.nii.gz
+# caution: ${patientName}_t1_bet_to_dti_1mm.nii.gz should be the structure image for further process!!
+
+#recon-all
+mkdir ${patientName}_recon_all
+recon-all -i ${patientName}_t1_bet_to_dti_1mm.nii.gz -subjid ${patientName} -sd ${patientName}_recon_all -all
+# 5tt segmentation
+mrconvert ${patientName}_recon_all/${patientName}/mri/aparc.a2009s+aseg.mgz aparc.a2009s+aseg.nii.gz
+5ttgen freesurfer aparc.a2009s+aseg.nii.gz ${patientName}_5ttseg.mif 
+5tt2gmwmi ${patientName}_5ttseg.mif ${patientName}_5tt_gmwimi.mif

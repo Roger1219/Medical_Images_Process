@@ -1,0 +1,218 @@
+#!/bin/bash
+
+# Warning! Please read the following instructions first
+# There are 3 parts in this script.
+# For part1, it functions that prepare the DTI images and respective native T1 image and regestrate T1 to DTI b0 images. 
+# It also parcelates the brain by recon-all for further use.
+# For part1, you should put T1, dti raw images files in folder "raw_iamges" 
+
+# For part2, it functions for tempalte (and ROIs in this template) regestration to native t1 image (which hase been regestrated to navite dti b0 image in part1).
+# For this part, you should copy template in this directory and ROIs in folder as ROIs, you also need copy 1_ants2afniMatrix.py in this directory.
+rgTemplate=HCP1065_mni_icbm152_t1_tal_nlin_asym_09c_brain.nii.gz
+
+# For part3, it functions for that process DTI images to make tractography and you should check the code about ROIs carefully.
+# For this part, you should copy ROIs files in folder ROIs (named as ROI_*.nii.gz)
+
+##Part1 for mrtirx_raw_process
+
+
+t1_raw=006_3DT1BRAVO.nii.gz
+dti_raw=007_DTI_corrected
+patientName=lilin
+
+# Check whether all files exist
+fileReady=1 
+if [ ! -f "raw_images/${t1_raw}" ]; then fileReady=0; fi 
+if [ ! -f "raw_images/${dti_raw}.nii.gz" ]; then fileReady=0; fi
+if [ ! -f "${rgTemplate}" ]; then fileReady=0; fi
+if [ ! -f "1_ants2afniMatrix.py" ]; then fileReady=0; fi
+if [ ! -d "ROIs" ]; then fileReady=0; fi
+if [ fileReady == 0 ]; then 
+   echo "files are lacked!"
+   exit
+fi
+
+
+#convert nifti to mif
+mrconvert -fslgrad raw_images/${dti_raw}.bvec raw_images/${dti_raw}.bval raw_images/${dti_raw}.nii.gz ${patientName}_dti_raw1.mif 
+
+# creat a mask
+dwi2mask ${patientName}_dti_raw1.mif - | maskfilter - dilate ${patientName}_dti_raw1_mask.mif -npass 3
+
+#Denoising
+dwidenoise ${patientName}_dti_raw1.mif ${patientName}_dti_denoise.mif -noise noiselevel.mif -mask ${patientName}_dti_raw1_mask.mif
+
+#Gibbs Ring artifact
+mrdegibbs ${patientName}_dti_denoise.mif ${patientName}_dti_degibbs.mif 
+
+#motion and distortion correction
+dwifslpreproc ${patientName}_dti_degibbs.mif ${patientName}_dti_preproc.mif \
+              -rpe_none -pe_dir AP \
+              -eddy_options "--data_is_shelled --slm=linear --niter=5"
+              
+# bias filed correction
+dwibiascorrect ants ${patientName}_dti_preproc.mif ${patientName}_dti_biascorr.mif
+
+#prepare for alignment to T1
+dwiextract ${patientName}_dti_biascorr.mif -bzero - | mrmath -axis 3 - mean ${patientName}_dti_b0.nii.gz
+
+#prepare T1
+bet raw_images/${t1_raw}  ${patientName}_t1_bet.nii.gz -R
+
+# use ants to registrate
+antsRegistrationSyN.sh -d 3 -f ${patientName}_dti_b0.nii.gz -m ${patientName}_t1_bet.nii.gz -t r -o ${patientName}_t1_bet_to_dti
+
+
+# if you need the mat file for mrtransform, execute next code. Meanwhile, this code can make the transformed image resolution isn't changed.
+
+ConvertTransformFile 3 ${patientName}_t1_bet_to_dti0GenericAffine.mat ${patientName}_t1_bet_to_dti0GenericAffine.txt
+transformconvert ${patientName}_t1_bet_to_dti0GenericAffine.txt itk_import ${patientName}_t1_bet_to_dti_mrtrix.txt
+mrtransform -linear ${patientName}_t1_bet_to_dti_mrtrix.txt ${patientName}_t1_bet.nii.gz ${patientName}_t1_bet_to_dti_1mm.nii.gz
+# caution: ${patientName}_t1_bet_to_dti_1mm.nii.gz should be the structure image for further process!!
+
+#recon-all
+mkdir ${patientName}_recon_all
+recon-all -i ${patientName}_t1_bet_to_dti_1mm.nii.gz -subjid ${patientName} -sd ${patientName}_recon_all -all
+# 5tt segmentation
+mrconvert ${patientName}_recon_all/${patientName}/mri/aparc.a2009s+aseg.mgz aparc.a2009s+aseg.nii.gz
+5ttgen freesurfer aparc.a2009s+aseg.nii.gz ${patientName}_5ttseg.mif 
+5tt2gmwmi ${patientName}_5ttseg.mif ${patientName}_5tt_gmwimi.mif
+
+
+## Part2 for ants_regestration
+
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=16
+
+# registrate HCP template to native T1 bet image (which has been regestrated to native dti b0 image!)
+mkdir ants_regestration
+
+prefix=HCP_to_T1_to_DTI_b0
+fixed=${patientName}_t1_bet_to_dti_1mm.nii.gz
+moving=${rgTemplate} 
+base_mask=none
+in_mask=none
+base_mask_SyN=none
+in_mask_SyN=none 
+antsRegistration -d 3 --float 1 --verbose \
+      --output [ ants_regestration/${prefix}_, ants_regestration/${prefix}_fwd_warped.nii.gz, ants_regestration/${prefix}_inv_warped.nii.gz ] \
+      --interpolation LanczosWindowedSinc \
+      --collapse-output-transforms 1 \
+      --initial-moving-transform [ ${fixed}, ${moving}, 1 ]  \
+      --winsorize-image-intensities [0.005,0.995] \
+      --use-histogram-matching 1 \
+      --transform translation[ 0.1 ] \
+          --metric mattes[ ${fixed}, ${moving}, 1, 32, regular, 0.3 ] \
+          --convergence [ 1000x300x100, 1e-6, 10 ]  \
+          --smoothing-sigmas 4x2x1vox  \
+          --shrink-factors 8x4x2 \
+          --use-estimate-learning-rate-once 1 \
+          --masks [ ${base_mask}, ${in_mask} ] \
+      -t rigid[ 0.1 ] \
+          -m mattes[ ${fixed}, ${moving}, 1, 32, regular, 0.3 ] \
+          -c [ 1000x300x100, 1e-6, 10 ]  \
+          -s 4x2x1vox  \
+          -f 4x2x1 -l 1 \
+          -x [ ${base_mask}, ${in_mask} ] \
+      -t affine[ 0.1 ] \
+          -m mattes[ ${fixed}, ${moving}, 1, 32, regular, 0.3 ] \
+          -c [ 1000x300x100, 1e-6, 10 ]  \
+          -s 2x1x0vox  \
+          -f 4x2x1 -l 1 \
+          -x [ ${base_mask}, ${in_mask} ] \
+      -t SyN[ 0.1, 3, 0 ] \
+          -m mattes[ ${fixed}, ${moving}, 0.5 , 32 ] \
+          -m cc[ ${fixed}, ${moving}, 0.5 , 4 ] \
+          -c [ 500x500x100, 1e-8, 10 ]  \
+          -s 1x0.5x0vox  \
+          -f 4x2x1 -l 1 \
+          -x [ ${base_mask_SyN}, ${in_mask_SyN} ]
+
+# apply matrix to tempalte ROI to make native ROI
+#transform mat to .1D
+./1_ants2afniMatrix.py -i ants_regestration/${prefix}_0GenericAffine.mat     \
+                       -o ants_regestration/${prefix}_0GenericAffine.1D
+
+# apply 1D to ROIs
+roiList=$(ls ROIs/ROI_*.nii.gz)
+echo ${roiList}
+parallel --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'        \
+                3dNwarpApply -prefix {..}_to_${patientName}.nii.gz  \
+                -source {}                  \
+                -master ants_regestration/${prefix}_fwd_warped.nii.gz   \
+                -nwarp "ants_regestration/${prefix}_1Warp.nii.gz ants_regestration/${prefix}_0GenericAffine.1D"         \
+                ::: ${roiList}
+
+
+## Part3 for mrtrix_trk_making
+
+
+# create a mask
+dwi2mask ${patientName}_dti_biascorr.mif - | maskfilter - dilate ${patientName}_dti_biascorr_mask.mif -npass 3
+
+# create diffusion tensor
+dwi2tensor -mask ${patientName}_dti_biascorr_mask.mif ${patientName}_dti_biascorr.mif ${patientName}_dt.mif 
+
+# calculate eigevectors
+tensor2metric ${patientName}_dt.mif -fa ${patientName}_dt_fa.mif -ad ${patientName}_dt_ad.mif \
+                                    -adc ${patientName}_dt_md.mif -rd ${patientName}_dt_rd.mif 
+
+# constrained spherical deconvolution (CSD)
+# estimate response function for wm, gm, csf
+dwi2response dhollander ${patientName}_dti_biascorr.mif ${patientName}_wm.txt ${patientName}_gm.txt ${patientName}_csf.txt \
+             -voxels ${patientName}_ms5tt_voxels.mif
+             
+# estimate fiber orientation distribution FOD
+dwi2fod msmt_csd ${patientName}_dti_biascorr.mif  \
+        ${patientName}_wm.txt ${patientName}_dti_wmCsd.mif \
+        ${patientName}_gm.txt ${patientName}_dti_gmCsd.mif \
+        ${patientName}_csf.txt ${patientName}_dti_csfCsd.mif
+
+
+## For next part, you should choose or modify code based on your own study!!
+
+# create ROIs
+mrthreshold -abs 0.2 ${patientName}_dt_fa.mif - | mrcalc - ${patientName}_dti_biascorr_mask.mif -mult ${patientName}_dti_wmMask.mif
+
+# put your ROIs in folder ROIs
+
+mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 10 ROIs/${patientName}_lh_thalamus.nii.gz
+mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 11111 ROIs/${patientName}_lh_cuneus.nii.gz
+
+# all tractography results are saved in folder trks
+mkdir trks
+# whole brain tractography
+tckgen -algo iFOD2 -act ${patientName}_5ttseg.mif -backtrack -crop_at_gmwmi \
+       -cutoff 0.05 -angle 45 -minlength 20 -maxlength 200 \
+       -seed_image ${patientName}_dti_wmMask.mif -select 200k \
+       ${patientName}_dti_wmCsd.mif \
+       trks/${patientName}_fibs_200k_angle45_maxlen200_act.tck
+
+# Roi based tractography
+tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
+       -minlength 20 -maxlength 100 \
+       -seed_image ROIs/${patientName}_lh_thalamus.nii.gz \
+       -include ROIs/${patientName}_lh_cuneus.nii.gz \
+       -seed_unidirectional \
+       -stop \
+       ${patientName}_dti_wmCsd.mif \
+       trks/${patientName}_fibs_OR.tck
+       
+# ROI based tractography, left mPFC to Superiro Colliculusto
+tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
+       -minlength 20 -maxlength 100 \
+       -seed_image ROIs/ROI_L_mPFC2_to_${patientName}.nii.gz \
+       -include ROIs/ROI_L_SuperiroColliculus_to_${patientName}.nii.gz \
+       -seed_unidirectional \
+       -stop \
+       ${patientName}_dti_wmCsd.mif \
+       trks/${patientName}_fibs_left_mPFC_to_left_SC.tck
+
+# ROI based tractography, left FEF to Superiro Colliculusto
+tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
+       -minlength 20 -maxlength 100 \
+       -seed_image ROIs/ROI_L_FEF_to_${patientName}.nii.gz \
+       -include ROIs/ROI_L_SuperiroColliculus_to_${patientName}.nii.gz \
+       -seed_unidirectional \
+       -stop \
+       ${patientName}_dti_wmCsd.mif \
+       trks/${patientName}_fibs_left_FEF_to_left_SC.tck
