@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 # Warning! Please read the following instructions first
 # There are 3 parts in this script.
 # For part1, it functions that prepare the DTI images and respective native T1 image and regestrate T1 to DTI b0 images. 

@@ -1,5 +1,5 @@
 #! /bin/bash
-
+set -e
 # apply registration mat file to all ROI (in template space) to make native ROI
 # pls put your ROI in Focus_ROIs folder
 patientName=PA5
