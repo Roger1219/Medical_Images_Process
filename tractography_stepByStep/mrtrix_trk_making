@@ -30,7 +30,7 @@ dwi2fod msmt_csd ${patientName}_dti_biascorr.mif  \
 mrthreshold -abs 0.2 ${patientName}_dt_fa.mif - | mrcalc - ${patientName}_dti_biascorr_mask.mif -mult ${patientName}_dti_wmMask.mif
 
 # put your ROIs in folder ROIs
-
+# extract ROIs from freesurfer
 mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 10 ROIs/${patientName}_lh_thalamus.nii.gz
 mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 11111 ROIs/${patientName}_lh_cuneus.nii.gz
 
@@ -43,7 +43,7 @@ tckgen -algo iFOD2 -act ${patientName}_5ttseg.mif -backtrack -crop_at_gmwmi \
        ${patientName}_dti_wmCsd.mif \
        trks/${patientName}_fibs_200k_angle45_maxlen200_act.tck
 
-# Roi based tractography
+# Roi based tractography, using roi from freesurfer
 tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
        -minlength 20 -maxlength 100 \
        -seed_image ROIs/${patientName}_lh_thalamus.nii.gz \
