@@ -36,6 +36,9 @@ if [ $length_seed != $length_target ]
    exit 1
 fi
 
+# The ouput trk file will be saved in trks folder.
+if [ ! -d trks ]; then mkdir trks; fi 
+
 for ((i=0;i<=($length_seed-1);i++))
  do
  seed=$(ls FocuS_ROIs/native_rois/${seed_roi[i]}*)
