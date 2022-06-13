@@ -15,10 +15,11 @@ rgTemplate=HCP1065_mni_icbm152_t1_tal_nlin_asym_09c_brain.nii.gz
 
 ##Part1 for mrtirx_raw_process
 
+echo "please enter the patient name:"
+read patientName
+t1_raw=T1_3D.nii.gz
+dti_raw=DTI_raw.nii.gz
 
-t1_raw=006_3DT1BRAVO.nii.gz
-dti_raw=007_DTI_corrected
-patientName=lilin
 
 # Check whether all files exist
 fileReady=1 

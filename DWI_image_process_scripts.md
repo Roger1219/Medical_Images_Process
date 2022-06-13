@@ -1,7 +1,7 @@
 ### DWI文件与处理
 1. 转换为nii文件
     ```
-    dcm2niix\_afni -f %p\_%s -o ./ ./
+    dcm2niix_afni -f %p_%s -o ./ ./
     ```
     rawToNii.sh
     * 将脚本拷贝到SE序列文件夹的目录中，运行脚本，会自动在每一个SE文件夹中生成nii图像文件
