@@ -14,7 +14,7 @@ rgTemplate=HCP1065_mni_icbm152_t1_tal_nlin_asym_09c_brain.nii.gz
 # For this part, you should copy ROIs files in folder ROIs (named as ROI_*.nii.gz)
 
 ##Part1 for mrtirx_raw_process
-
+echo "Please make sure your conda environment is AFQ!!!"
 echo "please enter the patient name:"
 read patientName
 t1_raw=T1_3D.nii.gz

@@ -97,3 +97,5 @@
 	4. 可能部分配准效果并不好
 13. 采用另一准方法从dicom预处理、畸变矫正到T1配准   
      参考dtiRaw_preprocess
+14. 一键眼动ROI追踪脚本   
+	dti_process_byMrtrix，确保运行时conda环境为AFQ
