@@ -9,6 +9,7 @@
     ```
     3dbucket -prefix ax_dwi1 Axial_DWI_Focus_small_FOV_4.nii[0]
     ```
+    bucketExtraction.sh
 3. afni画ROI mask 得到  BiMR+orig  和BiLR+orig
 
 4. 统计

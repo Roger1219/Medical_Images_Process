@@ -41,6 +41,8 @@
         Output the residuals into a dataset with prefix 'q'.
         2. `-ACF`
         If residuals are saved, also compute the ACF parameters from them using program 3dFHWMx --for further use in 3dClustSim (which must be run separately).
+        3. `-Clustsim`
+        直接生成cluster level的结果，在afni直接可以看到
     * 文件：fMRI_analysis    
 
 4. 进行多重比较检验（计算voxie数量及其检验效能）
@@ -59,3 +61,5 @@
         其中，AAA是全脑mask，同上一步，a,b,c是上一步结果的前3个数，将结果输出到clustsim.txt中
     3. 3dttest++ 
         * 在3dttest++中加入 -Clustsim 参数即可直接生成 
+4. whereami -omask MASKFILE.brik
+    提供MASKFILE 的解剖定位信息
