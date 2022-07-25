@@ -40,7 +40,7 @@
         1. `-resid q+tlrc`  
         Output the residuals into a dataset with prefix 'q'.    
         2. `-ACF`   
-        If residuals are saved, also compute the ACF parameters from them using program 3dFHWMx --for further use in 3dClustSim (which must be run separately). 
+        If residuals are saved, also compute the ACF parameters from them using program 3dFHWMx --for further use in 3dClustSim (which must be run separately).     
         3. `-Clustsim`  
         直接生成cluster level的结果，在afni直接可以看到 
     * 文件：fMRI_analysis    
