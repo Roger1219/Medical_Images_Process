@@ -99,3 +99,6 @@
      参考dtiRaw_preprocess
 14. 一键眼动ROI追踪脚本   
 	dti_process_byMrtrix，确保运行时conda环境为AFQ
+15. tract profile 可视化 （tractVisualization 文件夹）
+	1. left_hemi.py 等：从左侧或者右侧可视化tract和ROI，先运行调整视角，然后关闭窗口，命令行中会出现视角参数，然后粘贴到代码最后几行，再次运行，即可存储图像
+	2. profile_plot.py 展示每个tract沿节点分布的dti参数曲线。
