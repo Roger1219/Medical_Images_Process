@@ -1,0 +1,60 @@
+#! /bin/bash
+set -e
+# apply registration mat file to all ROI (in template space) to make native ROI
+# pls put your ROI in Focus_ROIs folder
+patientName=PA5
+
+roiList=$(ls FocuS_ROIs/*ROI_*.nii.gz)
+prefix=HCP_to_T1_to_DTI_b0
+
+echo ${roiList}
+parallel --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'        \
+                -j 8 \
+                3dNwarpApply -prefix {..}_to_${patientName}.nii.gz  \
+                -source {}                  \
+                -master ants_regestration/${prefix}_fwd_warped.nii.gz   \
+                -nwarp "ants_regestration/${prefix}_1Warp.nii.gz ants_regestration/${prefix}_0GenericAffine.1D"         \
+                ::: ${roiList}
+       
+# move results to native_rois folder
+mkdir FocuS_ROIs/native_rois
+mv $(ls FocuS_ROIs/*to*) FocuS_ROIs/native_rois/
+
+
+# tractography starts from seed_roi to target_roi. The num of two varibles should be the same. 
+# The num of ROI are shown in ROI_Lut.txt
+
+seed_roi=(8 9)
+target_roi=(22 22)
+
+
+length_seed=${#seed_roi[*]}
+length_target=${#target_roi[*]}
+if [ $length_seed != $length_target ] 
+  then 
+   echo "The lenght of two seed varibles are not the same!"
+   exit 1
+fi
+
+# The ouput trk file will be saved in trks folder.
+if [ ! -d trks ]; then mkdir trks; fi 
+
+for ((i=0;i<=($length_seed-1);i++))
+ do
+ seed=$(ls FocuS_ROIs/native_rois/${seed_roi[i]}*)
+ target=$(ls FocuS_ROIs/native_rois/${target_roi[i]}*)
+
+ seedName=${seed##*ROI_}
+ seedName=${seedName%%_to_*}
+ targetName=${target##*ROI_}
+ targetName=${targetName%%_to_*}
+ echo "Tracting from $seedName to $targetName..."
+ tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
+       -minlength 20 -maxlength 100 \
+       -seed_image ${seed} \
+       -include ${target} \
+       -seed_unidirectional \
+       -stop \
+       ${patientName}_dti_wmCsd.mif \
+       trks/${patientName}_fibs_${seedName}_to_${targetName}.tck
+done

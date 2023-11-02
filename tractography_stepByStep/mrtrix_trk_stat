@@ -1,0 +1,37 @@
+#! /bin/bash
+set -e
+
+# This script generates the mean FA, MD of trks in folder trks
+patientName=LK
+outputdic=trks_stat
+
+cd trks
+trkList=$(ls ${patientName}*.tck)
+echo $trkList
+cd ..
+
+if [ ! -d trks_stat ]; then mkdir trks_stat; fi
+if [ -f $outputdic/${patientName}_stat.txt ]; then rm $outputdic/${patientName}_stat.txt; fi
+
+i=0
+echo "  mean of MD      FA      AD" >> $outputdic/${patientName}_stat.txt
+
+for trk in $trkList
+ do
+  i=`expr $i + 1`
+  trkName=${trk#*fibs_}
+  trkName=${trkName%.tck*}
+  trkNameArray[i]=$trkName
+  tckmap -template ${patientName}_dt_md.mif trks/$trk - | mrthreshold - trks_stat/binary_mask_$trkName.mif -abs 0.5 -f
+
+  # Generate mean of MD value 
+  meanOfMD=$(mrstats -mask trks_stat/binary_mask_$trkName.mif ${patientName}_dt_md.mif -output mean)
+  # Generate mean of FA value 
+  meanOfFA=$(mrstats -mask trks_stat/binary_mask_$trkName.mif ${patientName}_dt_fa.mif -output mean)
+  # Generate mean of AD value 
+  meanOfAD=$(mrstats -mask trks_stat/binary_mask_$trkName.mif ${patientName}_dt_ad.mif -output mean) 
+
+  echo "$i $trkName" >> $outputdic/${patientName}_stat.txt
+
+  echo "  $meanOfMD       $meanOfFA       $meanOfAD" >> $outputdic/${patientName}_stat.txt
+done

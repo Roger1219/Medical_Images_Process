@@ -1,7 +1,7 @@
 ### DWI文件与处理
 1. 转换为nii文件
     ```
-    dcm2niix\_afni -f %p\_%s -o ./ ./
+    dcm2niix_afni -f %p_%s -o ./ ./
     ```
     rawToNii.sh
     * 将脚本拷贝到SE序列文件夹的目录中，运行脚本，会自动在每一个SE文件夹中生成nii图像文件
@@ -9,6 +9,7 @@
     ```
     3dbucket -prefix ax_dwi1 Axial_DWI_Focus_small_FOV_4.nii[0]
     ```
+    bucketExtraction.sh
 3. afni画ROI mask 得到  BiMR+orig  和BiLR+orig
 
 4. 统计
