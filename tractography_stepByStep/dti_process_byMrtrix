@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+# This scrip is executed in patient folder
 # Warning! Please read the following instructions first
 # There are 3 parts in this script.
 # For part1, it functions that prepare the DTI images and respective native T1 image and regestrate T1 to DTI b0 images. 
@@ -14,21 +15,21 @@ rgTemplate=HCP1065_mni_icbm152_t1_tal_nlin_asym_09c_brain.nii.gz
 # For this part, you should copy ROIs files in folder ROIs (named as ROI_*.nii.gz)
 
 ##Part1 for mrtirx_raw_process
-echo "Please make sure your conda environment is AFQ!!!"
+
 echo "please enter the patient name:"
 read patientName
-t1_raw=T1_3D.nii.gz
-dti_raw=DTI_raw.nii.gz
+t1_raw=T1_3D
+dti_raw=DTI_raw 
 
 
 # Check whether all files exist
 fileReady=1 
-if [ ! -f "raw_images/${t1_raw}" ]; then fileReady=0; fi 
+if [ ! -f "raw_images/${t1_raw}.nii.gz" ]; then fileReady=0; fi 
 if [ ! -f "raw_images/${dti_raw}.nii.gz" ]; then fileReady=0; fi
 if [ ! -f "${rgTemplate}" ]; then fileReady=0; fi
 if [ ! -f "1_ants2afniMatrix.py" ]; then fileReady=0; fi
 if [ ! -d "ROIs" ]; then fileReady=0; fi
-if [ fileReady == 0 ]; then 
+if [ $fileReady -eq 0 ]; then 
    echo "files are lacked!"
    exit
 fi
@@ -58,7 +59,7 @@ dwibiascorrect ants ${patientName}_dti_preproc.mif ${patientName}_dti_biascorr.m
 dwiextract ${patientName}_dti_biascorr.mif -bzero - | mrmath -axis 3 - mean ${patientName}_dti_b0.nii.gz
 
 #prepare T1
-bet raw_images/${t1_raw}  ${patientName}_t1_bet.nii.gz -R
+bet raw_images/${t1_raw}.nii.gz  ${patientName}_t1_bet.nii.gz -R
 
 # use ants to registrate
 antsRegistrationSyN.sh -d 3 -f ${patientName}_dti_b0.nii.gz -m ${patientName}_t1_bet.nii.gz -t r -o ${patientName}_t1_bet_to_dti
@@ -134,21 +135,27 @@ antsRegistration -d 3 --float 1 --verbose \
                        -o ants_regestration/${prefix}_0GenericAffine.1D
 
 # apply 1D to ROIs
-roiList=$(ls ROIs/ROI_*.nii.gz)
+roiList=$(ls FocuS_ROIs/*ROI_*.nii.gz)
+prefix=HCP_to_T1_to_DTI_b0
 echo ${roiList}
 parallel --rpl '{..} s:\.[^.]+$::;s:\.[^.]+$::;'        \
+                -j 4 \
                 3dNwarpApply -prefix {..}_to_${patientName}.nii.gz  \
                 -source {}                  \
                 -master ants_regestration/${prefix}_fwd_warped.nii.gz   \
                 -nwarp "ants_regestration/${prefix}_1Warp.nii.gz ants_regestration/${prefix}_0GenericAffine.1D"         \
                 ::: ${roiList}
+       
+# move results to native_rois folder
+mkdir FocuS_ROIs/native_rois
+mv $(ls FocuS_ROIs/*to*) FocuS_ROIs/native_rois/
 
 
 ## Part3 for mrtrix_trk_making
 
 
 # create a mask
-dwi2mask ${patientName}_dti_biascorr.mif - | maskfilter - dilate ${patientName}_dti_biascorr_mask.mif -npass 3
+dwi2mask ${patientName}_dti_biascorr.mif - | maskfilter - dilate ${patientName}_dti_biascorr_mask.mif -npass 1
 
 # create diffusion tensor
 dwi2tensor -mask ${patientName}_dti_biascorr_mask.mif ${patientName}_dti_biascorr.mif ${patientName}_dt.mif 
@@ -177,16 +184,20 @@ mrthreshold -abs 0.2 ${patientName}_dt_fa.mif - | mrcalc - ${patientName}_dti_bi
 # put your ROIs in folder ROIs
 
 mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 10 ROIs/${patientName}_lh_thalamus.nii.gz
+mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 49 ROIs/${patientName}_rh_thalamus.nii.gz
 mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 11111 ROIs/${patientName}_lh_cuneus.nii.gz
+mri_extract_label -dilate 2 aparc.a2009s+aseg.nii.gz 12111 ROIs/${patientName}_rh_cuneus.nii.gz
 
-# all tractography results are saved in folder trks
-mkdir trks
+# all tractography results are saved in trkfolder
+if [ ! -d ${trkfolder} ]; then mkdir ${trkfolder}; fi 
+
 # whole brain tractography
 tckgen -algo iFOD2 -act ${patientName}_5ttseg.mif -backtrack -crop_at_gmwmi \
        -cutoff 0.05 -angle 45 -minlength 20 -maxlength 200 \
        -seed_image ${patientName}_dti_wmMask.mif -select 200k \
        ${patientName}_dti_wmCsd.mif \
-       trks/${patientName}_fibs_200k_angle45_maxlen200_act.tck
+       ${trkfolder}/${patientName}_fibs_200k_angle45_maxlen200_act.tck
+mv ${trkfolder}/${patientName}_fibs_200k_angle45_maxlen200_act.tck ./
 
 # Roi based tractography
 tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
@@ -196,24 +207,92 @@ tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
        -seed_unidirectional \
        -stop \
        ${patientName}_dti_wmCsd.mif \
-       trks/${patientName}_fibs_OR.tck
-       
-# ROI based tractography, left mPFC to Superiro Colliculusto
-tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
-       -minlength 20 -maxlength 100 \
-       -seed_image ROIs/ROI_L_mPFC2_to_${patientName}.nii.gz \
-       -include ROIs/ROI_L_SuperiroColliculus_to_${patientName}.nii.gz \
-       -seed_unidirectional \
-       -stop \
-       ${patientName}_dti_wmCsd.mif \
-       trks/${patientName}_fibs_left_mPFC_to_left_SC.tck
+       ${trkfolder}/${patientName}_fibs_L_OR.tck
 
-# ROI based tractography, left FEF to Superiro Colliculusto
 tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
        -minlength 20 -maxlength 100 \
-       -seed_image ROIs/ROI_L_FEF_to_${patientName}.nii.gz \
-       -include ROIs/ROI_L_SuperiroColliculus_to_${patientName}.nii.gz \
+       -seed_image ROIs/${patientName}_rh_thalamus.nii.gz \
+       -include ROIs/${patientName}_rh_cuneus.nii.gz \
        -seed_unidirectional \
        -stop \
        ${patientName}_dti_wmCsd.mif \
-       trks/${patientName}_fibs_left_FEF_to_left_SC.tck
+       ${trkfolder}/${patientName}_fibs_R_OR.tck
+
+# tractography starts from seed_roi to target_roi. The num of two varibles should be the same. 
+# The num of ROI are shown in ROI_Lut.txt
+
+seed_roi=(8 9 20 21 15 16 6 7 6 7 6 7 10 11 13 14 23 24 25 25)
+target_roi=(22 22 22 22 22 22 8 9 20 21 19 19 22 22 15 16 22 22 10 11)
+
+
+length_seed=${#seed_roi[*]}
+length_target=${#target_roi[*]}
+if [ $length_seed != $length_target ] 
+  then 
+   echo "The lenght of two seed varibles are not the same!"
+   exit 1
+fi
+
+for ((i=0;i<=($length_seed-1);i++))
+ do
+ seed=$(ls FocuS_ROIs/native_rois/${seed_roi[i]}*)
+ target=$(ls FocuS_ROIs/native_rois/${target_roi[i]}*)
+
+ seedName=${seed##*ROI_}
+ seedName=${seedName%%_to_*}
+ targetName=${target##*ROI_}
+ targetName=${targetName%%_to_*}
+ echo "Tracting from ${seedName} to ${targetName}..." | tee -a ${trkfolder}/log.txt
+ tckgen -algo iFOD2 -cutoff 0.05 -angle 45 \
+       -minlength 20 -maxlength 100 \
+       -seed_image ${seed} \
+       -include ${target} \
+       -seed_unidirectional \
+       -stop \
+       -select 5000\
+       ${patientName}_dti_wmCsd.mif \
+       ${trkfolder}/${patientName}_fibs_${seedName}_to_${targetName}.tck
+done
+
+
+## Part4 Cleaning the tracts
+if [ ! -f ${patientName}_dti_biascorr.nii.gz ]; then mrconvert ${patientName}_dti_biascorr.mif ${patientName}_dti_biascorr.nii.gz; fi
+# cleaned tract files by this python script will be saved in ${trkfolder}/cleanTrks
+./cleanTract_parallel.py -i ${patientName} -f ${trkfolder}
+mv ${patientName}_fibs_200k_angle45_maxlen200_act.tck ./${trkfolder}/
+## Part5 for generating the mean FA, MD of trks in folder trks
+
+outputdic=${trkfolder}/trks_stat
+
+cd ${trkfolder}
+trkList=$(ls ${patientName}*.tck)
+echo $trkList
+cd ..
+
+if [ ! -d ${outputdic} ]; then mkdir ${trkfolder}; fi
+if [ -f ${outputdic}/${patientName}_stat.txt ]; then rm ${outputdic}/${patientName}_stat.txt; fi
+
+i=0
+echo "MD FA AD" >> ${outputdic}/${patientName}_stat.txt
+
+for trk in $trkList
+ do
+  i=`expr $i + 1`
+  trkName=${trk#*fibs_}
+  trkName=${trkName%.tck*}
+  trkNameArray[i]=$trkName 
+  tckmap -template ${patientName}_dt_md.mif ${trkfolder}/$trk - | mrthreshold - ${outputdic}/binary_mask_$trkName.mif -abs 0.5 -f
+
+  # Generate mean of MD value 
+  meanOfMD=$(mrstats -mask ${outputdic}/binary_mask_$trkName.mif ${patientName}_dt_md.mif -output mean)
+  # Generate mean of FA value 
+  meanOfFA=$(mrstats -mask ${outputdic}/binary_mask_$trkName.mif ${patientName}_dt_fa.mif -output mean)
+  # Generate mean of AD value 
+  meanOfAD=$(mrstats -mask ${outputdic}/binary_mask_$trkName.mif ${patientName}_dt_ad.mif -output mean) 
+  # Generate mean of RD value 
+  meanOfRD=$(mrstats -mask ${outputdic}/binary_mask_$trkName.mif ${patientName}_dt_rd.mif -output mean) 
+  echo "$trkName $meanOfMD$meanOfFA$meanOfAD" >> ${outputdic}/${patientName}_stat.txt
+
+done
+if [ ! -d "../statistic" ]; then mkdir ../statistic; fi
+cp ${outputdic}/PA*_stat.txt ../statistic/
