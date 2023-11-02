@@ -257,6 +257,9 @@ done
 
 ## Part4 Cleaning the tracts
 if [ ! -f ${patientName}_dti_biascorr.nii.gz ]; then mrconvert ${patientName}_dti_biascorr.mif ${patientName}_dti_biascorr.nii.gz; fi
+#activate enviroment for AFQ
+source /home/roger/miniconda3/bin/activate AFQ
+
 # cleaned tract files by this python script will be saved in ${trkfolder}/cleanTrks
 ./cleanTract_parallel.py -i ${patientName} -f ${trkfolder}
 mv ${patientName}_fibs_200k_angle45_maxlen200_act.tck ./${trkfolder}/
