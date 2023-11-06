@@ -10,7 +10,7 @@ filtered_df = df[(df['node'] >= 11) & (df['node'] <= 90)]
 result_df = filtered_df.groupby(['name', 'tractName', 'group'])['values'].mean().reset_index()
 
 # 重命名列
-result_df.columns = ['name', 'actName', 'group', 'average_value']
+result_df.columns = ['name', 'tractName', 'group', 'average_value']
 
 # 打印结果
 print(result_df)
