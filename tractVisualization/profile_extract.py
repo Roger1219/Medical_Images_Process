@@ -54,16 +54,20 @@ def profile_group(subjList, trackList, group):
     return df
 
 # Test data
-patientList = np.array(["PA16", "PA17", "PA19"])
-subjList = np.array(["PA4", "PA5", "PA6"])
-tractList = np.array(["fibs_CAL_to_MT_L_cleaned.tck", "fibs_CAL_to_MT_R_cleaned.tck"])
+#patientList = np.array(["PA16", "PA17", "PA19"])
+#subjList = np.array(["PA4", "PA5", "PA6"])
+#tractList = np.array(["fibs_CAL_to_MT_L_cleaned.tck", "fibs_CAL_to_MT_R_cleaned.tck"])
 
 # formal data
-#patientList = np.array(["PA16", "PA17", "PA21", "PA22", "PA23", "PA25", "PA26", "PA27", "PA30", "PA31"])
-#subjList = np.array(["PA4", "PA5", "PA6", "PA7", "PA8", "PA10", "PA12", "PA15", "PA20", "PA28"])
+patientList = np.array(["PA16", "PA17", "PA19", "PA21", "PA22", "PA23", "PA25", "PA26", "PA27", "PA30", "PA31"])
+subjList = np.array(["PA4", "PA5", "PA6", "PA7", "PA8", "PA10", "PA12", "PA15", "PA20", "PA28"])
 #tractList = np.array(["_fibs_CAL_to_MT_R_cleaned.tck", "_fibs_MT_R_to_SC_cleaned.tck", "_fibs_PCUN_L_to_PEF_L_cleaned.tck", "_fibs_THA_L_to_SC_cleaned.tck"])
 #tractList = np.array(["fibs_CAL_to_MT_R_cleaned.tck", "fibs_THA_L_to_SC_cleaned.tck"])
-
+#获取指定目录下的所有tck文件
+tractList = np.array([])
+for file in os.listdir("/media/win/MRI_Project/DTI_raw/PA4/trks_202310/cleanTrks"):
+    if file.endswith('.tck'):
+        tractList = np.append(tractList, file)
 
 df_patient = profile_group(patientList, tractList, "patient")
 df_normal = profile_group(subjList, tractList, "normal")
@@ -75,7 +79,7 @@ filtered_df = df[(df['node'] >= 11) & (df['node'] <= 90)]
 # 根据name和actName分组，计算平均值
 result_df = filtered_df.groupby(['name', 'tractName', 'group'])['values'].mean().reset_index()
 # 重命名列
-result_df.columns = ['name', 'actName', 'group', 'average_value']
+result_df.columns = ['name', 'tractName', 'group', 'average_value']
 # 打印结果
 print(result_df)
 result_df.to_excel('~/80PercentResult.xlsx', index=False)
