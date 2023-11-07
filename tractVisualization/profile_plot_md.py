@@ -70,16 +70,24 @@ df = pd.concat([df_patient, df_normal], ignore_index=True)
 print (df)
 
 # create plots 
-fig, ax = plt.subplots(1, 2, constrained_layout=True, sharey="row", figsize=(8,3))
+#设置生成的图中有imagX行，imagY列
+imagX = 1
+imagY = 2
+#指定输出的指标： FA, MD, AD, RD中的一个
+dtiPara = "FA"
+fig, ax = plt.subplots(imagX, imagY, constrained_layout=True, sharey="row", figsize=(imagY * 4, imagX * 3))
 i = 0
 j = 0
 for tract in tractList:
     tractName = tract.split(".")[0]
     df_tract = df.query("tractName == @tractName")
-    subplot = sns.lineplot(data=df_tract, x="node", y="values", hue="group", errorbar=("se", 1), ax=ax[j])
-    subplot.set_ylabel("MD")
+    if imagX == 1:
+        subplot = sns.lineplot(data=df_tract, x="node", y=dtiPara, hue="group", errorbar=("se", 1), ax=ax[j])
+    if imagX > 1:
+        subplot = sns.lineplot(data=df_tract, x="node", y=dtiPara, hue="group", errorbar=("se", 1), ax=ax[i,j])
+    subplot.set_ylabel(dtiPara)
     subplot.set_title(tractName)
-    if j == 1:
+    if j == imagY - 1:
         i = i + 1 
         j = 0
     else:
