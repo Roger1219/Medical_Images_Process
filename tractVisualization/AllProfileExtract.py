@@ -15,7 +15,7 @@ import seaborn as sns
 dtiParameters = np.array(["md","fa","ad","rd"])
 dtiMifFileNames = np.array([])
 dtiNiiFileNames = np.array([])
-for para in dtiParameters:
+for dtiParameter in dtiParameters:
     dtiMifFileNames = np.append(dtiMifFileNames, "_dt_" + dtiParameter + ".mif")
     dtiNiiFileNames = np.append(dtiNiiFileNames, "_dt_" + dtiParameter + ".nii.gz")
 dtiMifFileName = "_dt_" + dtiParameter + ".mif"
@@ -29,16 +29,12 @@ def profile_group(subjList, trackList, group):
         #prepare workdirctory
         wdpath = op.join("/media/win/MRI_Project/DTI_raw/", subj)
         #prepare FA,MD,AD,RD and DTI file
-        dti_imgs = np.array([])
-        dti_paras = np.array([])
         for dtiParameter in dtiParameters:
             dtiMifFileName = "_dt_" + dtiParameter + ".mif"
             dtiNiiFileName = "_dt_" + dtiParameter + ".nii.gz"
             if not(os.path.exists(op.join(wdpath, subj + dtiNiiFileName))): 
                 print(os.system("mrconvert "+ op.join(wdpath, subj + dtiMifFileName ) + " " + op.join(wdpath, subj + dtiNiiFileName)))
-            dti_img = nib.load(op.join(wdpath, subj + dtiNiiFileName))
-            dti_imgs = np.append(dti_imgs, dti_img)
-            dti_paras = np.append(dti_paras, dti_img.get_fdata())
+
 
         #Load tract files and extract profile
         trackPath = op.join(wdpath,"trks_202310","cleanTrks")
@@ -47,14 +43,18 @@ def profile_group(subjList, trackList, group):
             #fulltrackname = subj + tractName
             #This is for the latest tract file
             fulltrackname = tractName
-            for i in range(4):
-                track = (load_tractogram(op.join(trackPath, fulltrackname), dti_imgs[i], to_space=Space.VOX))
+            df_column = pd.DataFrame()
+            for dtiParameter in dtiParameters:
+                dti_img = nib.load(op.join(wdpath, subj + "_dt_" + dtiParameter + ".nii.gz"))
+                dti_para = dti_img.get_fdata()
+                track = (load_tractogram(op.join(trackPath, fulltrackname), dti_img, to_space=Space.VOX))
                 trackWeight = gaussian_weights(track.streamlines)
-                profile = afq_profile(dti_paras[i], track.streamlines, np.eye(4), weights=trackWeight)
+                profile = afq_profile(dti_para, track.streamlines, np.eye(4), weights=trackWeight)
                 para_column = pd.DataFrame(profile)
-                df_column = pd.concat([df_column, para_column])
+                df_column = pd.concat([df_column, para_column], axis = 1)
             #create row dataframe
             df_column.columns = ["MD","FA","AD","RD"]
+            print (df_column.head())
             #add name, tractName, nodenum, group
             name_column = pd.DataFrame({"name": [subj] * 100})
             tract_column = pd.DataFrame({"tractName": [tractName.split(".")[0]] * 100})
