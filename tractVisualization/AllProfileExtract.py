@@ -1,7 +1,6 @@
 import os
 import os.path as op
 import matplotlib.pyplot as plt
-import plotly
 import numpy as np
 import nibabel as nib
 import dipy.data as dpd
@@ -85,7 +84,7 @@ df_patient = profile_group(patientList, tractList, "patient")
 df_normal = profile_group(subjList, tractList, "normal")
 df = pd.concat([df_patient, df_normal], ignore_index=True)
 print (df)
-df.to_excel('~/test1.xlsx', index=False)
+#df.to_excel('~/test1.xlsx', index=False)
 # # 提取node为10到90的行
 # filtered_df = df[(df['node'] >= 11) & (df['node'] <= 90)]
 # # 根据name和actName分组，计算平均值
