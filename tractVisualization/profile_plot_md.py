@@ -62,7 +62,7 @@ def profile_group(subjList, trackList, group):
 patientList = np.array(["PA16", "PA17", "PA21", "PA22", "PA23", "PA25", "PA26", "PA27", "PA30", "PA31"])
 subjList = np.array(["PA4", "PA5", "PA6", "PA7", "PA8", "PA10", "PA12", "PA15", "PA20", "PA28"])
 #tractList = np.array(["_fibs_CAL_to_MT_R_cleaned.tck", "_fibs_MT_R_to_SC_cleaned.tck", "_fibs_PCUN_L_to_PEF_L_cleaned.tck", "_fibs_THA_L_to_SC_cleaned.tck"])
-tractList = np.array(["fibs_CAL_to_MT_R_cleaned.tck", "fibs_THA_L_to_SC_cleaned.tck"])
+tractList = np.array(["fibs_CAL_to_MT_L_cleaned.tck"])
 #tractList = np.array(["fibs_CAL_to_MT_R_cleaned.tck", "fibs_DLPFC_L_to_sFEF_L_cleaned.tck", "fibs_DLPFC_R_to_sFEF_R_cleaned.tck", "fibs_PEF_R_to_SC_cleaned.tck", "fibs_sFEF_R_to_SC_cleaned.tck", "fibs_THA_L_to_SC_cleaned.tck"])
 df_patient = profile_group(patientList, tractList, "patient")
 df_normal = profile_group(subjList, tractList, "normal")
@@ -72,7 +72,7 @@ print (df)
 # create plots 
 #设置生成的图中有imagX行，imagY列
 imagX = 1
-imagY = 2
+imagY = 1
 fig, ax = plt.subplots(imagX, imagY, constrained_layout=True, sharey="row", figsize=(imagY * 4, imagX * 3))
 i = 0
 j = 0

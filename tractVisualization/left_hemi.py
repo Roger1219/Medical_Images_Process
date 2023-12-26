@@ -10,21 +10,27 @@ from fury import actor, window
 from fury.colormap import create_colormap
 
 import AFQ.data.fetch as afd
-patientName = "PA16"
+patientName = "PA23"
 wdpath = "/media/win/MRI_Project/DTI_raw/" + patientName
 fa_img = nib.load(op.join(wdpath, patientName + "_dt_fa.nii.gz"))
 fa = fa_img.get_fdata()
 
 trackPath = op.join(wdpath,"trks_202310","cleanTrks")
 tracks = []
-#tracks.append(load_tck(op.join(trackPath, "fibs_CAL_to_MT_L_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_CAL_to_MT_L_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_CAL_to_MT_R_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_L_to_sFEF_L_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_R_to_sFEF_R_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_L_to_iFEF_L_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_R_to_iFEF_R_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_L_to_SEF_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_R_to_SEF_cleaned.tck"), fa_img))
-#tracks.append(load_tck(op.join(trackPath, "fibs_MT_R_to_SC_cleaned.tck"), fa_img))
-tracks.append(load_tck(op.join(trackPath, "fibs_PEF_R_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_sFEF_L_to_SC_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_sFEF_R_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_iFEF_L_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_iFEF_R_to_SC_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_THA_L_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_THA_R_to_SC_cleaned.tck"), fa_img))
 
 
 t1_img = nib.load(op.join(wdpath, patientName + "_t1_bet_to_dti_1mm.nii.gz"))
@@ -75,7 +81,7 @@ def slice_volume(data, x=None, y=None, z=None):
 
     return slicer_actors
 
-slicers = slice_volume(t1, y=145, z=t1.shape[-1]//2)
+slicers = slice_volume(t1, y=120, z=t1.shape[-1]//2-5)
 
 
 # Making a `scene`
@@ -87,14 +93,19 @@ scene = window.Scene()
 
 # Visualizing bundles with setting bundle colors
 from matplotlib.cm import tab20
+from matplotlib.cm import tab20b
 
 
 tcks_actor = []
-list = [1,5]
-colorList = [2,4,6,8]
+#20231129 picture1 setting
+list = [0,8,10,12]
+colorList = [0,8,10,12]
+#20231129 picture2 setting
+list = [2,4,6]
+colorList = [2,4,6]
 j = 0
 for i in list:
-    tck_actor = lines_as_tubes(tracks_t1[i], 8, colors=tab20.colors[colorList[j]])
+    tck_actor = lines_as_tubes(tracks_t1[i], 10, colors=tab20.colors[colorList[j]])
     scene.add(tck_actor)
     j = j + 1
 
@@ -110,20 +121,21 @@ for slicer in slicers:
 from dipy.align import resample
 ROIPath = op.join(wdpath, "FocuS_ROIs","native_rois_202310")
 ROIs= []
-#ROIs.append(nib.load(op.join(ROIPath,"25ROI_CAL_to_" + patientName + ".nii.gz")))
-#ROIs.append(nib.load(op.join(ROIPath,"13ROI_PCUN_L_to_" + patientName + ".nii.gz")))
+ROIs.append(nib.load(op.join(ROIPath,"25ROI_CAL_to_" + patientName + ".nii.gz")))
+ROIs.append(nib.load(op.join(ROIPath,"10ROI_MT_L_to_" + patientName + ".nii.gz")))
 ROIs.append(nib.load(op.join(ROIPath,"23ROI_THA_L_to_" + patientName + ".nii.gz")))
 ROIs.append(nib.load(op.join(ROIPath,"22ROI_SC_to_" + patientName + ".nii.gz")))
-#ROIs.append(nib.load(op.join(ROIPath,"20ROI_sFEF_L_to_" + patientName + ".nii.gz")))
+ROIs.append(nib.load(op.join(ROIPath,"20ROI_sFEF_L_to_" + patientName + ".nii.gz")))
+ROIs.append(nib.load(op.join(ROIPath,"8ROI_iFEF_L_to_" + patientName + ".nii.gz")))
 
 surface_color = tab20.colors[0]
 surface_colors = [3,7,5,5]
-surface_colors = [0,0,0,0]
+surface_colors = [6,6,3,3,10,10]
 i = 0
 for roi in ROIs:
     roi_xform = resample(roi, t1_img)
-    roi_data = roi_xform.get_fdata() > 0 
-    roi_actor = actor.contour_from_roi(roi_data,color=tab20.colors[surface_colors[i]],opacity=0.25)
+    roi_data = roi_xform.get_fdata() > 5
+    roi_actor = actor.contour_from_roi(roi_data,color=tab20b.colors[surface_colors[i]],opacity=0.25)
     #scene.add(roi_actor)
     i = i + 1
 
@@ -147,18 +159,17 @@ for roi in ROIs:
 # scene.add(waypoint2_actor)
 
 # Set camera
-scene.set_camera(position=(269.62, 34.18, -156.77),
-   focal_point=(127.50, 127.50, 93.50),
-   view_up=(-0.16, -0.95, 0.27))
-scene.set_camera(position=(50.74, 36.14, -184.53),
-   focal_point=(127.50, 127.50, 93.50),
-   view_up=(0.08, -0.95, 0.29))
-scene.set_camera(position=(145.27, 65.31, -202.06),
-   focal_point=(127.50, 127.50, 93.50),
-   view_up=(-0.02, -0.98, 0.20))
+# 20231129 picuter1 setting
+scene.set_camera(position=(336.66, 69.92, -29.62),
+   focal_point=(122.30, 115.05, 90.94),
+   view_up=(-0.21, -0.98, 0.00))
+# 20231129 picuter2 setting
+scene.set_camera(position=(-53.16, -103.40, -17.73),
+   focal_point=(132.49, 115.60, 77.74),
+   view_up=(0.63, -0.69, 0.35))
 
 # Save a picture
-#window.record(scene, out_path="left_hemi5.png", size=(3200,2400), reset_camera=False)
+window.record(scene, out_path="left_hemi20231129-2.png", size=(3200,2400), reset_camera=False)
 
 # Show the scene
 window.show(scene, size=(3200, 2400), reset_camera=False)

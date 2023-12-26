@@ -10,21 +10,27 @@ from fury import actor, window
 from fury.colormap import create_colormap
 
 import AFQ.data.fetch as afd
-patientName = "PA16"
+patientName = "PA23"
 wdpath = "/media/win/MRI_Project/DTI_raw/" + patientName
 fa_img = nib.load(op.join(wdpath, patientName + "_dt_fa.nii.gz"))
 fa = fa_img.get_fdata()
 
 trackPath = op.join(wdpath,"trks_202310","cleanTrks")
 tracks = []
-#tracks.append(load_tck(op.join(trackPath, "fibs_CAL_to_MT_L_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_CAL_to_MT_L_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_CAL_to_MT_R_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_L_to_sFEF_L_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_R_to_sFEF_R_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_L_to_iFEF_L_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_R_to_iFEF_R_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_L_to_SEF_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_DLPFC_R_to_SEF_cleaned.tck"), fa_img))
-#tracks.append(load_tck(op.join(trackPath, "fibs_MT_R_to_SC_cleaned.tck"), fa_img))
-tracks.append(load_tck(op.join(trackPath, "fibs_PEF_R_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_sFEF_L_to_SC_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_sFEF_R_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_iFEF_L_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_iFEF_R_to_SC_cleaned.tck"), fa_img))
 tracks.append(load_tck(op.join(trackPath, "fibs_THA_L_to_SC_cleaned.tck"), fa_img))
+tracks.append(load_tck(op.join(trackPath, "fibs_THA_R_to_SC_cleaned.tck"), fa_img))
 
 
 t1_img = nib.load(op.join(wdpath, patientName + "_t1_bet_to_dti_1mm.nii.gz"))
@@ -73,7 +79,7 @@ def slice_volume(data, x=None, y=None, z=None):
 
     return slicer_actors
 
-slicers = slice_volume(t1, y=145, z=t1.shape[-1]//2)
+slicers = slice_volume(t1, y=120, z=t1.shape[-1]//2+4)
 
 
 # Making a `scene`
@@ -88,11 +94,16 @@ from matplotlib.cm import tab20
 
 
 tcks_actor = []
-list = [0,2,3,4]
-colorList = [10,12,16,18]
+#20231129 picture1 setting
+list = [1,9,11,13]
+colorList = [0,8,10,12]
+#20231129 picture2 setting
+list = [3,5,7]
+colorList = [2,4,6]
+
 j = 0
 for i in list:
-    tck_actor = lines_as_tubes(tracks_t1[i], 6, colors=tab20.colors[colorList[j]])
+    tck_actor = lines_as_tubes(tracks_t1[i], 10, colors=tab20.colors[colorList[j]])
     scene.add(tck_actor)
     j = j + 1
 
@@ -144,14 +155,19 @@ for roi in ROIs:
 # scene.add(waypoint2_actor)
 
 # Set camera
-
-scene.set_camera(position=(123.67, 64.86, 389.48),
-   focal_point=(127.50, 127.50, 93.50),
-   view_up=(0.05, -0.98, -0.21))
+# 20231129 picuter1 setting
+scene.set_camera(position=(320.97, 25.95, 219.28),
+   focal_point=(117.04, 117.97, 107.59),
+   view_up=(-0.30, -0.93, -0.21))
+# 20231129 picuter2 setting
+scene.set_camera(position=(-23.32, -81.35, 173.10),
+   focal_point=(116.08, 109.36, 91.08),
+   view_up=(0.67, -0.65, -0.36))
 
 
 # Save a picture
-window.record(scene, out_path="right_hemi3.png", size=(3200,2400), reset_camera=False)
+#window.record(scene, out_path="right_hemi20231129-1.png", size=(3200,2400), reset_camera=False)
+window.record(scene, out_path="right_hemi20231129-2.png", size=(3200,2400), reset_camera=False)
 
 # Show the scene
 window.show(scene, size=(3200, 2400), reset_camera=False)

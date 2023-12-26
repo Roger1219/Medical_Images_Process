@@ -12,7 +12,7 @@ from dipy.io.stateful_tractogram import Space
 import pandas as pd
 import seaborn as sns
 # Assign dtiParameter = "md","fa","ad" or "rd"
-dtiParameter = "fa"
+dtiParameter = "rd"
 dtiMifFileName = "_dt_" + dtiParameter + ".mif"
 dtiNiiFileName = "_dt_" + dtiParameter + ".nii.gz"
 
@@ -37,7 +37,7 @@ def profile_group(subjList, trackList, group):
             if group == "patient":
                 if (subj == "PA27") or (subj == "PA31"):
                     print (subj + "chages left and right")
-                    tractName = "fibs_CAL_to_MT_R_cleaned.tck"
+                    tractName = "fibs_THA_L_to_SC_cleaned.tck"
                 fulltrackname = tractName
                 print (subj +"'s fulltrackname = " + fulltrackname)
 
@@ -47,6 +47,7 @@ def profile_group(subjList, trackList, group):
                 profile = afq_profile(md, track.streamlines, np.eye(4), weights=trackWeight)
                 #create row dataframe
                 df_column = pd.DataFrame(profile)
+                df_column = df_column * 1000 # Only for md, ad and rd data
                 df_column.columns = ["values"]
                 #add name, tractName, nodenum, group
                 name_column = pd.DataFrame({"name": [subj] * 100})
@@ -58,7 +59,7 @@ def profile_group(subjList, trackList, group):
                 df = pd.concat([df, subj_df], ignore_index=True)
             else:
                 fulltrackname1 = tractName
-                fulltrackname2 = "fibs_CAL_to_MT_R_cleaned.tck"
+                fulltrackname2 = "fibs_THA_L_to_SC_cleaned.tck"
                 print (subj +"'s fulltrackname = " + fulltrackname1 + " " + fulltrackname2)
 
                 track1 = (load_tractogram(op.join(trackPath, fulltrackname1), md_img, to_space=Space.VOX))
@@ -74,6 +75,7 @@ def profile_group(subjList, trackList, group):
                 df_column2.columns = ["value2"]
                 df_average = pd.DataFrame()
                 df_average['values'] = (df_column1['value1'] + df_column2['value2']) / 2
+                df_average = df_average * 1000  # Only for md, ad and rd data
                 #df_cache = pd.concat([df_column1,df_column2,df_average], axis = 1)
                 #print (df_cache.head)
                 #add name, tractName, nodenum, group
@@ -94,7 +96,7 @@ def profile_group(subjList, trackList, group):
 # formal data
 patientList = np.array(["PA16", "PA17", "PA21", "PA22", "PA23", "PA25", "PA26", "PA27", "PA30", "PA31"])
 subjList = np.array(["PA4", "PA5", "PA6", "PA7", "PA8", "PA10", "PA12", "PA15", "PA20", "PA28"])
-tractList = np.array(["fibs_CAL_to_MT_L_cleaned.tck"])
+tractList = np.array(["fibs_THA_R_to_SC_cleaned.tck"])
 df_patient = profile_group(patientList, tractList, "patient")
 df_normal = profile_group(subjList, tractList, "normal")
 df = pd.concat([df_patient, df_normal], ignore_index=True)
@@ -120,8 +122,8 @@ for tract in tractList:
             subplot = sns.lineplot(data=df_tract, x="node", y="values", hue="group", errorbar=("se", 1), ax=ax[j])
     if imagX > 1:
         subplot = sns.lineplot(data=df_tract, x="node", y="values", hue="group", errorbar=("se", 1), ax=ax[i,j])
-    subplot.set_ylabel(dtiParameter)
-    subplot.set_title(tractName)
+    subplot.set_ylabel(dtiParameter.upper())
+    #subplot.set_title(tractName)
     if j == imagY - 1:
         i = i + 1 
         j = 0
