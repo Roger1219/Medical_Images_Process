@@ -4,8 +4,8 @@ set -e
 rawDataWd="/Volumes/RogerSSD/backup/fMRI2021/rawData"
 pwd="/Volumes/RogerSSD/fMRI2023/TWOGAM"
 
-#patientList="PA10 PA15 PA16 PA17 PA20 PA21 PA22 PA23 PA25 PA26 PA27 PA28 PA30 PA31"
-patientList="PA4"
+patientList="PA5 PA6 PA7 PA8 PA10 PA15 PA16 PA17 PA20 PA21 PA22 PA23 PA25 PA26 PA27 PA28 PA30 PA31"
+#patientList="PA4"
 for patientName in $patientList
     do
         patientWD=$pwd/$patientName
@@ -32,13 +32,15 @@ for patientName in $patientList
             do
                 extractMaskName=${maskName#*mask_}
                 extractMaskName=${extractMaskName%_cleaned*}
-                outputFolder="1dstat_1"
+                outputFolder="1dstat"
                 if [ ! -d $outputFolder ]; then
                     mkdir $outputFolder
                 fi
                 3dDeconvolve -force_TR 2.4 -input $maskWD/mean1D/epi01_$extractMaskName.1D\' $maskWD/mean1D/epi02_$extractMaskName.1D\'     \
                              -jobs 10                                            \
                              -polort A                                           \
+                             -ortvec mot_demean.r01.1D mot_demean_r01            \
+                             -ortvec mot_demean.r02.1D mot_demean_r02            \
                              -censor motion1_${patientName}_censor.1D             \
                              -num_stimts 3                                                        \
                              -local_times                                                         \
@@ -50,7 +52,7 @@ for patientName in $patientList
                              -stim_label 3 rest                                                   \
                              -gltsym 'SYM: convergence - relax'                                   \
                              -glt_label 1 C-R                                                     \
-                             -fout -tout -x1D $outputFolder/X.xmat_${extractMaskName}.1D -xjpeg $outputFolder/X_${extractMaskName}.jpg                              \
+                             -fout -tout -bout -x1D $outputFolder/X.xmat_${extractMaskName}.1D -xjpeg $outputFolder/X_${extractMaskName}.jpg                              \
                              -x1D_uncensored $outputFolder/X.nocensor.xmat_${extractMaskName}.1D                                   \
                              -errts $outputFolder/errts.${patientName}_${extractMaskName}                                          \
                              -bucket $outputFolder/stats.${patientName}_${extractMaskName} > $outputFolder/stats.${patientName}_${extractMaskName}_details
