@@ -3,14 +3,16 @@ library(dplyr)
 library(car)
 library(openxlsx)
 
-setwd("/Volumes/RogerSSD/fMRI2023/TWOGAM")
-# 读取 Excel 表格
-df <- read_excel("Result.xlsx", sheet = "Sheet1")
+setwd("/Users/roger/Documents/科研/IXT_DTI_research/20231229_fMRI结果")
+
+# 读取 Excel 表，确定比较哪一列的数据，分组信息在group列
+excelName <- "同侧对侧比较Result.xlsx"
+examineColumnName <- "rest"
+
+df <- read_excel(excelName, sheet = "Sheet1")
 tracts <- unique(df$tract)
 #将待检验的列存入examineColumn
-examineColumnName <- "convergence"
 df$examineColumn <- df[[examineColumnName]]
-
 
 #only for test
 tractName <- "CAL_to_MT_R"
@@ -62,11 +64,13 @@ for (tractName in tracts) {
   
 }
 
+
+
 #保存
 # 创建一个数据框（假设这是你的数据框）
 
 # 指定保存的文件路径
-excel_file_path <- "result.xlsx"
+excel_file_path <- excelName
 sheet_name <- examineColumnName
 
 # 检查文件是否存在
