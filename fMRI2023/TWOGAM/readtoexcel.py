@@ -13,7 +13,7 @@ sumDataframes = pd.DataFrame(columns=['name','tract','convergence','relax','rest
 
 for num in allList:
     patientFolder = f'PA{num}'
-    pwd = os.path.join('/Volumes/RogerSSD/fMRI2023/TWOGAM', patientFolder, patientFolder + '.results', '1dstat')
+    pwd = os.path.join('/Volumes/RogerSSD/fMRI2023/TWOGAM', patientFolder, 'result20240104', '1dstat')
     # 遍历每一个文件，寻找stat开头和.1d结尾的文件
     for fileName in os.listdir(pwd):
         currentDataframe = pd.DataFrame(columns=['name','tract','convergence','relax','rest','group'])
@@ -23,8 +23,9 @@ for num in allList:
             currentFile = os.path.join(pwd, fileName)
             with open(currentFile, 'r') as file:
                 lines = file.readlines()
-                numbers = [float(line.strip()) for line in lines[10:13]]
-                # print(f'Numbers from lines 11-13: {numbers}')
+                # Warning! Pls make sure the line you need in the result file!!!!
+                numbers = [float(line.strip()) for line in lines[8:11]]
+                print(f'Numbers from lines 11-13: {numbers}')
             tractName = fileName.split('_',1)[1]
             tractName = tractName.split('.1D',1)[0]
             #将提取的数据存入dataframe
@@ -43,5 +44,5 @@ for num in allList:
 
 print(sumDataframes)
 
-excel_file_path = '/Volumes/RogerSSD/fMRI2023/TWOGAM/Result.xlsx'
+excel_file_path = '/Volumes/RogerSSD/fMRI2023/TWOGAM/Result_merge2.xlsx'
 sumDataframes.to_excel(excel_file_path, index=False)

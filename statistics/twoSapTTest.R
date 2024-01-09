@@ -3,7 +3,7 @@ library(dplyr)
 library(car)
 library(openxlsx)
 
-setwd("/Users/roger/Documents/科研/IXT_DTI_research/20231229_fMRI结果")
+setwd("/Users/roger/Documents/科研/IXT_DTI_research/20240104_fMRI_merge结果")
 
 # 读取 Excel 表，确定比较哪一列的数据，分组信息在group列
 excelName <- "同侧对侧比较Result.xlsx"
