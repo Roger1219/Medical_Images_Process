@@ -1,14 +1,20 @@
 #!/bin/bash
 
 # 设置文件夹路径
-fMRIFolder=""
-maskFolder=""
-outputFile=""
+fMRIFolder="/media/mripc/Data2/MRI/2018XTfMRI/wd9/HC"
+maskFolder="/media/mripc/Data2/MRI/2018XTfMRI/wd9/3mm"
+outputFile="/media/mripc/Data2/MRI/2018XTfMRI/wd9/resutls.txt"
+
+#检查outputFile是否存在
+if [ -f $outputFile ]; then 
+    rm $outputFile
+fi
 
 #获取所有mask名称并打印列标题
 colName="Subj"
 for file in "$maskFolder"/*.nii; do
     maskName="${file%.nii}"
+    maskName="${maskName##*/}"
     colName="$colName $maskName"
 done
 echo $colName >> $outputFile
@@ -19,24 +25,15 @@ for file1 in "$fMRIFolder"/*.nii; do
     inputFile="$file1"
     # 去掉后缀的文件名
     inputName="${file1%.nii}"
+    inputName="${inputName##*/}"
     currentRow=$inputName
     #遍历所有mask
     for file2 in "$maskFolder"/*.nii; do
         maskFile="$file2"
         maskName="${file2%.nii}"
-        echo "Input File: $inputFile; Mask File: $maskFile"
+        # echo "Input File: $inputFile; Mask File: $maskFile"
+        meanValue=$(mrstats  -mask $maskFile -output mean $inputFile)
+        currentRow="$currentRow $meanValue"
     done
+    echo $currentRow >> $outputFile
 done
-
-
-
-
-meanValue=$(mrstats  -mask $maskFile -output mean $inputFile)
-currentRow="$currentRow $meanValue"
-
-echo $currentRow >> $outputFile
-
-
-maskFile="r8ROI_iFEF_L.nii"
-inputFile="szfALFFMap_N1019.nii"
-mrstats  -mask $maskFile -output mean $inputFile
